@@ -64,9 +64,7 @@ function formatMessage(message) {
     // Handle spoilers and mentions
     content = content.replace(/\|\|/g, "!!").replace(/@everyone/g, "`@everyone`");
 
-    // Format timestamp
-    const timestamp = Math.floor(message.createdAt.getTime() / 1000);
-    return `**${message.author.username}**\n> ${content}\n:clock230: <t:${timestamp}:f>`;
+    return `**${message.author.username}**\n ${content}`;
 }
 
 client.on('clientReady', () => {

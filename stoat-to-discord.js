@@ -54,8 +54,7 @@ stoatClient.on("messageCreate", async (message) => {
   }
 
   // Format the message
-  const timestamp = Math.floor(new Date(message.createdAt).getTime() / 1000);
-  const formattedContent = `**${message.author.username}**\n> ${message.content}\n:clock230: <t:${timestamp}:f>`;
+  const formattedContent = `**${message.author.username}**\n ${message.content}`;
 
   // Handle attachments
   const attachmentFiles = [];
@@ -109,9 +108,8 @@ stoatClient.on("messageUpdate", async (oldMessage, newMessage) => {
   }
 
   // Format the updated message
-  const timestamp = Math.floor(new Date(oldMessage.createdAt).getTime() / 1000);
   const authorName = oldMessage.author?.username || "Unknown User";
-  const formattedContent = `**${authorName}**\n> ${oldMessage.content}\n:clock230: <t:${timestamp}:f>`;
+  const formattedContent = `**${authorName}**\n ${oldMessage.content}`;
 
   try {
     // Get the Discord message and edit it
