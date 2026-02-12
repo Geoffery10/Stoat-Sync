@@ -4,6 +4,7 @@ import FormData from 'form-data';
 import fs from 'fs/promises';
 import dotenv from 'dotenv';
 import path from 'path';
+import yaml from 'js-yaml';
 
 // Load environment variables
 dotenv.config();
@@ -16,13 +17,10 @@ const STOAT_API_URL = `${STOAT_BASE_URL}/api`;
 const STOAT_AUTUMN_URL = `${STOAT_BASE_URL}/autumn`;
 
 // Channel mappings
-const CHANNEL_MAPPING = {
-    "483867465613443082": "01KH742Q7T025TST0JZS5FWFGW",  // memes
-    "999347555278258268": "01KH73MPGWC22X1B8327NGDJYN",  // art🎨
-    "444706130338381834": "01KH741AKKGVKKETWM56YMPQHN",   // serious-talk
-    "435597744258940940": "01KH7AYNQBJXGSAECDP50CPFDZ",  // uncomfortable-corner
-    "548342217769746432": "01KH7455MSQBQHMR5KFGNETSE2"   // unregulated🐙🈲
-};
+const fileContents = await fs.readFile('channel_mapping.yaml', 'utf8');
+const CHANNEL_MAPPING = yaml.load(fileContents);
+
+console.log(CHANNEL_MAPPING)
 
 // Message mapping storage
 const messageMapping = new Map();
