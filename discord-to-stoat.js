@@ -1,0 +1,223 @@
+import { Client, GatewayIntentBits } from 'discord.js';
+import axios from 'axios';
+import FormData from 'form-data';
+import fs from 'fs/promises';
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load environment variables
+dotenv.config();
+
+// Configuration
+const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
+const STOAT_BOT_TOKEN = process.env.STOAT_BOT_TOKEN;
+const STOAT_BASE_URL = process.env.STOAT_BASE_URL;
+const STOAT_API_URL = `${STOAT_BASE_URL}/api`;
+const STOAT_AUTUMN_URL = `${STOAT_BASE_URL}/autumn`;
+
+// Channel mappings
+const CHANNEL_MAPPING = {
+    "483867465613443082": "01KH742Q7T025TST0JZS5FWFGW",  // memes
+    "999347555278258268": "01KH73MPGWC22X1B8327NGDJYN",  // art🎨
+    "444706130338381834": "01KH741AKKGVKKETWM56YMPQHN",   // serious-talk
+    "435597744258940940": "01KH7AYNQBJXGSAECDP50CPFDZ",  // uncomfortable-corner
+    "548342217769746432": "01KH7455MSQBQHMR5KFGNETSE2"   // unregulated🐙🈲
+};
+
+// Message mapping storage
+const messageMapping = new Map();
+
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
+    ]
+});
+
+async function uploadAttachmentToStoat(filePath) {
+    try {
+        if (!await fs.access(filePath).then(() => true).catch(() => false)) {
+            console.log(`[!] Attachment not found locally: ${filePath}`);
+            return null;
+        }
+
+        const form = new FormData();
+        form.append('file', await fs.readFile(filePath), {
+            filename: path.basename(filePath),
+            contentType: 'application/octet-stream'
+        });
+
+        const response = await axios.post(`${STOAT_AUTUMN_URL}/attachments`, form, {
+            headers: {
+                ...form.getHeaders(),
+                'x-bot-token': STOAT_BOT_TOKEN
+            }
+        });
+
+        return response.data?.id || null;
+    } catch (error) {
+        console.error(`[!] Error uploading file: ${error.message}`);
+        return null;
+    }
+}
+
+function formatMessage(message) {
+    let content = message.content;
+
+    // Handle spoilers and mentions
+    content = content.replace(/\|\|/g, "!!").replace(/@everyone/g, "`@everyone`");
+
+    // Format timestamp
+    const timestamp = Math.floor(message.createdAt.getTime() / 1000);
+    return `**${message.author.username}**\n> ${content}\n:clock230: <t:${timestamp}:f>`;
+}
+
+client.on('clientReady', () => {
+    console.log(`Logged in as ${client.user.tag}`);
+});
+
+client.on('messageCreate', async (message) => {
+    // Ignore messages from the bot itself
+    if (message.author.id == 1471564072674791444) return;
+
+    // Check if the message is in a channel we want to mirror
+    console.log("message.channelId: " + message.channelId)
+    const stoatChannelId = CHANNEL_MAPPING[String(message.channelId)];
+    console.log("stoatChannelId: " + stoatChannelId)
+    if (!stoatChannelId) return;
+
+    // Format the message
+    const formattedContent = formatMessage(message);
+    console.log(formattedContent)
+
+    // Handle attachments
+    const attachmentIds = [];
+    for (const attachment of message.attachments.values()) {
+        const filePath = `temp_${attachment.id}_${attachment.name}`;
+        try {
+            // Download the attachment
+            const response = await axios.get(attachment.url, { responseType: 'arraybuffer' });
+            await fs.writeFile(filePath, response.data);
+
+            // Upload to Stoat
+            const uploadedId = await uploadAttachmentToStoat(filePath);
+            if (uploadedId) {
+                attachmentIds.push(uploadedId);
+            }
+
+            // Clean up
+            await fs.unlink(filePath);
+        } catch (error) {
+            console.error(`Error handling attachment ${attachment.name}: ${error.message}`);
+            if (await fs.access(filePath).then(() => true).catch(() => false)) {
+                await fs.unlink(filePath);
+            }
+        }
+    }
+
+    // Prepare payload
+    const payload = {
+        content: formattedContent,
+        attachments: attachmentIds
+    };
+
+    // Send to Stoat
+    try {
+        const response = await axios.post(
+            `${STOAT_API_URL}/channels/${stoatChannelId}/messages`,
+            payload,
+            {
+                headers: {
+                    'x-bot-token': STOAT_BOT_TOKEN,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        const stoatMessageId = response.data?._id;
+        if (stoatMessageId) {
+            if (!messageMapping.has(message.channelId)) {
+                messageMapping.set(message.channelId, new Map());
+            }
+            messageMapping.get(message.channelId).set(message.id, stoatMessageId);
+            console.log(`Successfully sent message from ${message.author.username} to Stoat (ID: ${stoatMessageId})`);
+        } else {
+            console.warn("Warning: No message ID returned from Stoat API");
+        }
+    } catch (error) {
+        console.error(`Failed to send message: ${error.response?.status || 'Unknown'} - ${error.message}`);
+    }
+});
+
+client.on('messageUpdate', async (oldMessage, newMessage) => {
+    // Ignore if the message is from the bot itself
+    if (newMessage.author.bot) return;
+
+    // Check if the message is in a channel we're mirroring
+    const stoatChannelId = CHANNEL_MAPPING[newMessage.channelId];
+    if (!stoatChannelId) return;
+
+    // Check if we have a mapping for this message
+    const channelMap = messageMapping.get(newMessage.channelId);
+    if (!channelMap || !channelMap.has(newMessage.id)) return;
+
+    const stoatMessageId = channelMap.get(newMessage.id);
+
+    // Format the edited message
+    const formattedContent = formatMessage(newMessage);
+
+    // Prepare payload
+    const payload = {
+        content: formattedContent
+    };
+
+    // Send the edit to Stoat
+    try {
+        await axios.patch(
+            `${STOAT_API_URL}/channels/${stoatChannelId}/messages/${stoatMessageId}`,
+            payload,
+            {
+                headers: {
+                    'x-bot-token': STOAT_BOT_TOKEN,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+        console.log(`Successfully edited message in Stoat (ID: ${stoatMessageId})`);
+    } catch (error) {
+        console.error(`Failed to edit message: ${error.response?.status || 'Unknown'} - ${error.message}`);
+    }
+});
+
+client.on('messageDelete', async (message) => {
+    // Check if the message is in a channel we're mirroring
+    const stoatChannelId = CHANNEL_MAPPING[message.channelId];
+    if (!stoatChannelId) return;
+
+    // Check if we have a mapping for this message
+    const channelMap = messageMapping.get(message.channelId);
+    if (!channelMap || !channelMap.has(message.id)) return;
+
+    const stoatMessageId = channelMap.get(message.id);
+
+    // Delete the message in Stoat
+    try {
+        await axios.delete(
+            `${STOAT_API_URL}/channels/${stoatChannelId}/messages/${stoatMessageId}`,
+            {
+                headers: {
+                    'x-bot-token': STOAT_BOT_TOKEN
+                }
+            }
+        );
+        console.log(`Successfully deleted message in Stoat (ID: ${stoatMessageId})`);
+
+        // Remove from our mapping
+        channelMap.delete(message.id);
+    } catch (error) {
+        console.error(`Failed to delete message: ${error.response?.status || 'Unknown'} - ${error.message}`);
+    }
+});
+
+client.login(DISCORD_TOKEN);
