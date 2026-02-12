@@ -20,8 +20,6 @@ const STOAT_AUTUMN_URL = `${STOAT_BASE_URL}/autumn`;
 const fileContents = await fs.readFile('channel_mapping.yaml', 'utf8');
 const CHANNEL_MAPPING = yaml.load(fileContents);
 
-console.log(CHANNEL_MAPPING)
-
 // Message mapping storage
 const messageMapping = new Map();
 
@@ -80,9 +78,7 @@ client.on('messageCreate', async (message) => {
     if (message.author.id == 1471564072674791444) return;
 
     // Check if the message is in a channel we want to mirror
-    console.log("message.channelId: " + message.channelId)
-    const stoatChannelId = CHANNEL_MAPPING[String(message.channelId)];
-    console.log("stoatChannelId: " + stoatChannelId)
+    const stoatChannelId = CHANNEL_MAPPING[message.channelId];
     if (!stoatChannelId) return;
 
     // Format the message
