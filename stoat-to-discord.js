@@ -43,6 +43,9 @@ stoatClient.on("messageCreate", async (message) => {
   const discordChannelId = STOAT_TO_DISCORD_MAPPING[message.channelId];
   if (!discordChannelId) return;
 
+  // Check if message is from bot
+  if (message.author.id == "01KH9H5Z2PCBD8CFXJ9TTKF8DF") return;
+
   // Get the Discord channel
   const discordChannel = await discordClient.channels.fetch(discordChannelId);
   if (!discordChannel) {
@@ -106,9 +109,9 @@ stoatClient.on("messageUpdate", async (oldMessage, newMessage) => {
   }
 
   // Format the updated message
-  const timestamp = Math.floor(new Date(newMessage.createdAt).getTime() / 1000);
-  const authorName = newMessage.author?.username || "Unknown User";
-  const formattedContent = `**${authorName}**\n> ${newMessage.content}\n:clock230: <t:${timestamp}:f>`;
+  const timestamp = Math.floor(new Date(oldMessage.createdAt).getTime() / 1000);
+  const authorName = oldMessage.author?.username || "Unknown User";
+  const formattedContent = `**${authorName}**\n> ${oldMessage.content}\n:clock230: <t:${timestamp}:f>`;
 
   try {
     // Get the Discord message and edit it
