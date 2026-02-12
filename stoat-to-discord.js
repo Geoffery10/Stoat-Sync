@@ -31,6 +31,9 @@ for (const [discordId, stoatId] of Object.entries(CHANNEL_MAPPING)) {
   STOAT_TO_DISCORD_MAPPING[stoatId] = discordId;
 }
 
+// Message mapping storage (Stoat message ID -> Discord message ID)
+const messageMapping = new Map();
+
 stoatClient.on("ready", async () =>
   console.info(`Logged in as ${stoatClient.user.username}!`),
 );
@@ -51,7 +54,7 @@ stoatClient.on("messageCreate", async (message) => {
   const timestamp = Math.floor(new Date(message.createdAt).getTime() / 1000);
   const formattedContent = `**${message.author.username}**\n> ${message.content}\n:clock230: <t:${timestamp}:f>`;
 
-  // Handle attachments - check if attachments exist and are iterable
+  // Handle attachments
   const attachmentFiles = [];
   if (message.attachments && typeof message.attachments === 'object') {
     const attachments = Array.isArray(message.attachments) ? message.attachments : [message.attachments];
@@ -71,13 +74,73 @@ stoatClient.on("messageCreate", async (message) => {
 
   // Send the message to Discord
   try {
-    await discordChannel.send({
+    const sentMessage = await discordChannel.send({
       content: formattedContent,
       files: attachmentFiles
     });
-    console.log(`Successfully mirrored message from ${message.author.username} to Discord`);
+
+    // Store the mapping (Stoat message ID -> Discord message ID)
+    messageMapping.set(message.id, sentMessage.id);
+
+    console.log(`Successfully mirrored message from ${message.author.username} to Discord (Stoat ID: ${message.id} -> Discord ID: ${sentMessage.id})`);
   } catch (error) {
     console.error(`Failed to send message to Discord: ${error.message}`);
+  }
+});
+
+// Handle message updates
+stoatClient.on("messageUpdate", async (oldMessage, newMessage) => {
+  // Check if this Stoat channel should be mirrored
+  const discordChannelId = STOAT_TO_DISCORD_MAPPING[newMessage.channelId];
+  if (!discordChannelId) return;
+
+  // Get the Discord message ID from our mapping
+  const discordMessageId = messageMapping.get(newMessage.id);
+  if (!discordMessageId) return;
+
+  // Get the Discord channel
+  const discordChannel = await discordClient.channels.fetch(discordChannelId);
+  if (!discordChannel) {
+    console.error(`Could not find Discord channel with ID ${discordChannelId}`);
+    return;
+  }
+
+  // Format the updated message
+  const timestamp = Math.floor(new Date(newMessage.createdAt).getTime() / 1000);
+  const authorName = newMessage.author?.username || "Unknown User";
+  const formattedContent = `**${authorName}**\n> ${newMessage.content}\n:clock230: <t:${timestamp}:f>`;
+
+  try {
+    // Get the Discord message and edit it
+    const discordMessage = await discordChannel.messages.fetch(discordMessageId);
+    await discordMessage.edit(formattedContent);
+    console.log(`Successfully updated message in Discord (Stoat ID: ${newMessage.id} -> Discord ID: ${discordMessageId})`);
+  } catch (error) {
+    console.error(`Failed to update message in Discord: ${error.message}`);
+  }
+});
+
+// Handle message deletions
+stoatClient.on("messageDelete", async (message) => {
+  // Get the Discord message ID from our mapping
+  const discordMessageId = messageMapping.get(message.id);
+  if (!discordMessageId) return;
+
+  // Get the Discord channel ID from our mapping
+  const discordChannelId = STOAT_TO_DISCORD_MAPPING[message.channelId];
+  if (!discordChannelId) return;
+
+  try {
+    // Get the Discord channel and delete the message
+    const discordChannel = await discordClient.channels.fetch(discordChannelId);
+    const discordMessage = await discordChannel.messages.fetch(discordMessageId);
+    await discordMessage.delete();
+    console.log(`Successfully deleted message in Discord (Stoat ID: ${message.id} -> Discord ID: ${discordMessageId})`);
+
+    // Remove from our mapping
+    messageMapping.delete(message.id);
+  } catch (error) {
+    console.error(`Failed to delete message in Discord: ${error.message}`);
   }
 });
 
