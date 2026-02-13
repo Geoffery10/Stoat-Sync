@@ -9,6 +9,8 @@ export const STOAT_BOT_TOKEN = process.env.STOAT_BOT_TOKEN;
 export const STOAT_BASE_URL = process.env.STOAT_BASE_URL;
 export const STOAT_API_URL = `${STOAT_BASE_URL}/api`;
 export const STOAT_AUTUMN_URL = `${STOAT_BASE_URL}/autumn`;
+export const STOAT_BOT_ID = process.env.STOAT_BOT_ID
+export const DISCORD_BOT_ID = process.env.DISCORD_BOT_ID
 
 export async function loadChannelMappings() {
     const fileContents = await fs.readFile('channel_mapping.yaml', 'utf8');

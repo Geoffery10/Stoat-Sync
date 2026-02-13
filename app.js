@@ -15,6 +15,8 @@ import {
   STOAT_BASE_URL,
   STOAT_API_URL,
   STOAT_AUTUMN_URL,
+  STOAT_BOT_ID,
+  DISCORD_BOT_ID,
   loadChannelMappings
 } from './config.js';
 
@@ -180,12 +182,6 @@ stoatClient.on("error", (error) => {
         stack: error.stack,
         context: error.context
     });
-
-    // Check if error has a type property (like ErrorEvent)
-    if (error.type === 'error') {
-        logger.error("WebSocket error occurred:", error);
-    }
-
     // Attempt to reconnect after a delay
     setTimeout(() => {
         logger.info("Attempting to reconnect to Stoat...");
