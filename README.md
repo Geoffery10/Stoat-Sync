@@ -39,8 +39,7 @@
 
 Start the synchronization:
 ```bash
-node discord-to-stoat.js
-node stoat-to-discord.js
+node app.js
 ```
 
 ## Configuration
@@ -57,16 +56,14 @@ node stoat-to-discord.js
 
 ## Architecture
 
-The system consists of two main components:
+The system uses a single unified application (`app.js`) that handles bidirectional synchronization between Discord and Stoat. This simplified architecture:
 
-1. **discord-to-stoat.js**: Listens to Discord events and forwards them to Stoat
-2. **stoat-to-discord.js**: Listens to Stoat events and forwards them to Discord
+1. Maintains a single connection to both platforms
+2. Handles all event types (messages, edits, deletions) in both directions
+3. Manages message mappings for proper synchronization
 
-Both components maintain message mappings to ensure proper synchronization of edits and deletions.
+## Notes
 
-## Logging
-
-The system uses a logger to track operations. Logs include:
-- Successful message transmissions
-- Errors during synchronization
-- Connection status updates
+- The application must be run with Node.js 18 or higher due to its use of ES modules
+- Both bot accounts need appropriate permissions in their respective platforms
+- The channel mapping file must be properly formatted YAML
