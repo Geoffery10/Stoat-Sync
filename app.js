@@ -76,7 +76,7 @@ stoatClient.on("messageCreate", async (message) => {
   if (!discordChannelId) return;
 
   // Check if message is from bot
-  if (message.author.id == process.env.STOAT_BOT_ID) return;
+  if (message.author.id == STOAT_BOT_ID) return;
 
   // Get the Discord channel
   const discordChannel = await discordClient.channels.fetch(discordChannelId);
@@ -180,10 +180,16 @@ stoatClient.on("error", (error) => {
         stack: error.stack,
         context: error.context
     });
+
+    // Check if error has a type property (like ErrorEvent)
+    if (error.type === 'error') {
+        logger.error("WebSocket error occurred:", error);
+    }
+
     // Attempt to reconnect after a delay
     setTimeout(() => {
         logger.info("Attempting to reconnect to Stoat...");
-        stoatClient.loginBot(process.env.STOAT_BOT_TOKEN);
+        stoatClient.loginBot(STOAT_BOT_TOKEN);
     }, 5000);
 });
 
@@ -192,7 +198,7 @@ stoatClient.on("close", (code, reason) => {
     // Attempt to reconnect
     setTimeout(() => {
         logger.info("Attempting to reconnect to Stoat...");
-        stoatClient.loginBot(process.env.STOAT_BOT_TOKEN);
+        stoatClient.loginBot(STOAT_BOT_TOKEN);
     }, 5000);
 });
 
@@ -203,7 +209,7 @@ discordClient.on('ready', () => {
 
 discordClient.on('messageCreate', async (message) => {
     // Ignore messages from the bot itself
-    if (message.author.id == process.env.DISCORD_BOT_ID) return;
+    if (message.author.id == DISCORD_BOT_ID) return;
 
     // Check if the message is in a channel we want to mirror
     const stoatChannelId = CHANNEL_MAPPING[message.channelId];
