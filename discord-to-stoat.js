@@ -5,6 +5,7 @@ import fs from 'fs/promises';
 import dotenv from 'dotenv';
 import path from 'path';
 import yaml from 'js-yaml';
+import { formatMessageForDiscord } from './messageFormatter.js';
 
 // Load environment variables
 dotenv.config();
@@ -58,15 +59,6 @@ async function uploadAttachmentToStoat(filePath) {
     }
 }
 
-function formatMessage(message) {
-    let content = message.content;
-
-    // Handle spoilers and mentions
-    content = content.replace(/\|\|/g, "!!").replace(/@everyone/g, "`@everyone`");
-
-    return `**${message.author.username}**\n ${content}`;
-}
-
 client.on('clientReady', () => {
     console.log(`Logged in as ${client.user.tag}`);
 });
@@ -80,7 +72,7 @@ client.on('messageCreate', async (message) => {
     if (!stoatChannelId) return;
 
     // Format the message
-    const formattedContent = formatMessage(message);
+    const formattedContent = await formatMessageForStoat(message);
     console.log(formattedContent)
 
     // Handle attachments
@@ -157,7 +149,7 @@ client.on('messageUpdate', async (oldMessage, newMessage) => {
     const stoatMessageId = channelMap.get(newMessage.id);
 
     // Format the edited message
-    const formattedContent = formatMessage(newMessage);
+    const formattedContent = await formatMessageForStoat(newMessage);
 
     // Prepare payload
     const payload = {

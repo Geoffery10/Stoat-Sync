@@ -4,6 +4,7 @@ import { config } from 'dotenv';
 import { Client as DiscordClient, GatewayIntentBits } from 'discord.js';
 import fs from 'fs/promises';
 import yaml from 'js-yaml';
+import { formatMessageForDiscord } from './messageFormatter.js';
 
 // Load environment variables
 config();
@@ -54,7 +55,7 @@ stoatClient.on("messageCreate", async (message) => {
   }
 
   // Format the message
-  const formattedContent = `**${message.author.username}**\n ${message.content}`;
+  const formattedContent = await formatMessageForDiscord(message);
 
   // Handle attachments
   const attachmentFiles = [];
@@ -109,7 +110,7 @@ stoatClient.on("messageUpdate", async (oldMessage, newMessage) => {
 
   // Format the updated message
   const authorName = oldMessage.author?.username || "Unknown User";
-  const formattedContent = `**${authorName}**\n ${oldMessage.content}`;
+  const formattedContent = await formatMessageForDiscord(message);
 
   try {
     // Get the Discord message and edit it
@@ -143,6 +144,24 @@ stoatClient.on("messageDelete", async (message) => {
   } catch (error) {
     console.error(`Failed to delete message in Discord: ${error.message}`);
   }
+});
+
+stoatClient.on("error", (error) => {
+    console.error("Stoat WebSocket error:", error);
+    // Attempt to reconnect after a delay
+    setTimeout(() => {
+        console.log("Attempting to reconnect to Stoat...");
+        stoatClient.loginBot(process.env.STOAT_BOT_TOKEN);
+    }, 5000);
+});
+
+stoatClient.on("close", (code, reason) => {
+    console.log(`Stoat connection closed (${code}): ${reason}`);
+    // Attempt to reconnect
+    setTimeout(() => {
+        console.log("Attempting to reconnect to Stoat...");
+        stoatClient.loginBot(process.env.STOAT_BOT_TOKEN);
+    }, 5000);
 });
 
 // Login to both clients
