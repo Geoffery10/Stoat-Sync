@@ -5,7 +5,8 @@ import fs from 'fs/promises';
 import dotenv from 'dotenv';
 import path from 'path';
 import yaml from 'js-yaml';
-import { formatMessageForDiscord } from './messageFormatter.js';
+import { formatMessageForStoat } from './messageFormatter.js';
+import { logger } from './logger.js';
 
 // Load environment variables
 dotenv.config();
@@ -35,7 +36,7 @@ const client = new Client({
 async function uploadAttachmentToStoat(filePath) {
     try {
         if (!await fs.access(filePath).then(() => true).catch(() => false)) {
-            console.log(`[!] Attachment not found locally: ${filePath}`);
+            logger.log(`[!] Attachment not found locally: ${filePath}`);
             return null;
         }
 
@@ -54,18 +55,18 @@ async function uploadAttachmentToStoat(filePath) {
 
         return response.data?.id || null;
     } catch (error) {
-        console.error(`[!] Error uploading file: ${error.message}`);
+        logger.error(`[!] Error uploading file: ${error.message}`);
         return null;
     }
 }
 
 client.on('clientReady', () => {
-    console.log(`Logged in as ${client.user.tag}`);
+    logger.info(`Logged in as ${client.user.tag}`);
 });
 
 client.on('messageCreate', async (message) => {
     // Ignore messages from the bot itself
-    if (message.author.id == 1471564072674791444) return;
+    if (message.author.id == process.env.DISCORD_BOT_ID) return;
 
     // Check if the message is in a channel we want to mirror
     const stoatChannelId = CHANNEL_MAPPING[message.channelId];
@@ -73,7 +74,6 @@ client.on('messageCreate', async (message) => {
 
     // Format the message
     const formattedContent = await formatMessageForStoat(message);
-    console.log(formattedContent)
 
     // Handle attachments
     const attachmentIds = [];
@@ -93,7 +93,7 @@ client.on('messageCreate', async (message) => {
             // Clean up
             await fs.unlink(filePath);
         } catch (error) {
-            console.error(`Error handling attachment ${attachment.name}: ${error.message}`);
+            logger.error(`[!] Error uploading file: ${error.message} (File): ${attachment.name}`);
             if (await fs.access(filePath).then(() => true).catch(() => false)) {
                 await fs.unlink(filePath);
             }
@@ -125,12 +125,12 @@ client.on('messageCreate', async (message) => {
                 messageMapping.set(message.channelId, new Map());
             }
             messageMapping.get(message.channelId).set(message.id, stoatMessageId);
-            console.log(`Successfully sent message from ${message.author.username} to Stoat (ID: ${stoatMessageId})`);
+            logger.info(`Successfully sent message from ${message.author.username} to Stoat (ID: ${stoatMessageId})`);
         } else {
-            console.warn("Warning: No message ID returned from Stoat API");
+            logger.warn("No message ID returned from Stoat API");
         }
     } catch (error) {
-        console.error(`Failed to send message: ${error.response?.status || 'Unknown'} - ${error.message}`);
+        logger.error(`Failed to send message: ${error.response?.status || 'Unknown'} - ${error.message}`);
     }
 });
 
@@ -168,9 +168,9 @@ client.on('messageUpdate', async (oldMessage, newMessage) => {
                 }
             }
         );
-        console.log(`Successfully edited message in Stoat (ID: ${stoatMessageId})`);
+        logger.info(`Successfully edited message in Stoat (ID: ${stoatMessageId})`);
     } catch (error) {
-        console.error(`Failed to edit message: ${error.response?.status || 'Unknown'} - ${error.message}`);
+        logger.error(`Failed to edit message: ${error.response?.status || 'Unknown'} - ${error.message}`);
     }
 });
 
@@ -195,12 +195,12 @@ client.on('messageDelete', async (message) => {
                 }
             }
         );
-        console.log(`Successfully deleted message in Stoat (ID: ${stoatMessageId})`);
+        logger.log(`Successfully deleted message in Stoat (ID: ${stoatMessageId})`);
 
         // Remove from our mapping
         channelMap.delete(message.id);
     } catch (error) {
-        console.error(`Failed to delete message: ${error.response?.status || 'Unknown'} - ${error.message}`);
+        logger.error(`Failed to delete message: ${error.response?.status || 'Unknown'} - ${error.message}`);
     }
 });
 

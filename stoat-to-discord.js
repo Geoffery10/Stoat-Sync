@@ -1,10 +1,10 @@
 import { Client } from "stoat.js";
-import dotenv from 'dotenv';
 import { config } from 'dotenv';
 import { Client as DiscordClient, GatewayIntentBits } from 'discord.js';
 import fs from 'fs/promises';
 import yaml from 'js-yaml';
 import { formatMessageForDiscord } from './messageFormatter.js';
+import { logger } from './logger.js';
 
 // Load environment variables
 config();
@@ -36,7 +36,7 @@ for (const [discordId, stoatId] of Object.entries(CHANNEL_MAPPING)) {
 const messageMapping = new Map();
 
 stoatClient.on("ready", async () =>
-  console.info(`Logged in as ${stoatClient.user.username}!`),
+  logger.info(`Logged in as ${stoatClient.user.username}!`),
 );
 
 stoatClient.on("messageCreate", async (message) => {
@@ -45,12 +45,12 @@ stoatClient.on("messageCreate", async (message) => {
   if (!discordChannelId) return;
 
   // Check if message is from bot
-  if (message.author.id == "01KH9H5Z2PCBD8CFXJ9TTKF8DF") return;
+  if (message.author.id == process.env.STOAT_BOT_ID) return;
 
   // Get the Discord channel
   const discordChannel = await discordClient.channels.fetch(discordChannelId);
   if (!discordChannel) {
-    console.error(`Could not find Discord channel with ID ${discordChannelId}`);
+    logger.error(`Could not find Discord channel with ID ${discordChannelId}`);
     return;
   }
 
@@ -70,7 +70,7 @@ stoatClient.on("messageCreate", async (message) => {
           name: attachment.name
         });
       } catch (error) {
-        console.error(`Error downloading attachment ${attachment.name}: ${error.message}`);
+        logger.error(`Error downloading attachment ${attachment.name}: ${error.message}`);
       }
     }
   }
@@ -85,9 +85,9 @@ stoatClient.on("messageCreate", async (message) => {
     // Store the mapping (Stoat message ID -> Discord message ID)
     messageMapping.set(message.id, sentMessage.id);
 
-    console.log(`Successfully mirrored message from ${message.author.username} to Discord (Stoat ID: ${message.id} -> Discord ID: ${sentMessage.id})`);
+    logger.info(`Successfully mirrored message from ${message.author.username} to Discord (Stoat ID: ${message.id} -> Discord ID: ${sentMessage.id})`);
   } catch (error) {
-    console.error(`Failed to send message to Discord: ${error.message}`);
+    logger.error(`Failed to send message to Discord: ${error.message}`);
   }
 });
 
@@ -104,7 +104,7 @@ stoatClient.on("messageUpdate", async (oldMessage, newMessage) => {
   // Get the Discord channel
   const discordChannel = await discordClient.channels.fetch(discordChannelId);
   if (!discordChannel) {
-    console.error(`Could not find Discord channel with ID ${discordChannelId}`);
+    logger.error(`Could not find Discord channel with ID ${discordChannelId}`);
     return;
   }
 
@@ -116,9 +116,9 @@ stoatClient.on("messageUpdate", async (oldMessage, newMessage) => {
     // Get the Discord message and edit it
     const discordMessage = await discordChannel.messages.fetch(discordMessageId);
     await discordMessage.edit(formattedContent);
-    console.log(`Successfully updated message in Discord (Stoat ID: ${newMessage.id} -> Discord ID: ${discordMessageId})`);
+    logger.info(`Successfully updated message in Discord (Stoat ID: ${newMessage.id} -> Discord ID: ${discordMessageId})`);
   } catch (error) {
-    console.error(`Failed to update message in Discord: ${error.message}`);
+    logger.error(`Failed to update message in Discord: ${error.message}`);
   }
 });
 
@@ -137,29 +137,29 @@ stoatClient.on("messageDelete", async (message) => {
     const discordChannel = await discordClient.channels.fetch(discordChannelId);
     const discordMessage = await discordChannel.messages.fetch(discordMessageId);
     await discordMessage.delete();
-    console.log(`Successfully deleted message in Discord (Stoat ID: ${message.id} -> Discord ID: ${discordMessageId})`);
+    logger.info(`Successfully deleted message in Discord (Stoat ID: ${message.id} -> Discord ID: ${discordMessageId})`);
 
     // Remove from our mapping
     messageMapping.delete(message.id);
   } catch (error) {
-    console.error(`Failed to delete message in Discord: ${error.message}`);
+    logger.error(`Failed to delete message in Discord: ${error.message}`);
   }
 });
 
 stoatClient.on("error", (error) => {
-    console.error("Stoat WebSocket error:", error);
+    logger.error("Stoat WebSocket error:", error);
     // Attempt to reconnect after a delay
     setTimeout(() => {
-        console.log("Attempting to reconnect to Stoat...");
+        logger.info("Attempting to reconnect to Stoat...");
         stoatClient.loginBot(process.env.STOAT_BOT_TOKEN);
     }, 5000);
 });
 
 stoatClient.on("close", (code, reason) => {
-    console.log(`Stoat connection closed (${code}): ${reason}`);
+    logger.warn(`Stoat connection closed (${code}): ${reason}`);
     // Attempt to reconnect
     setTimeout(() => {
-        console.log("Attempting to reconnect to Stoat...");
+        logger.info("Attempting to reconnect to Stoat...");
         stoatClient.loginBot(process.env.STOAT_BOT_TOKEN);
     }, 5000);
 });
