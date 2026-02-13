@@ -5,7 +5,9 @@
     "dotenv": "^17.3.0",
     "form-data": "^4.0.5",
     "js-yaml": "^4.1.1",
+    "module": "^2.0.0",
     "revolt.js": "^7.2.0",
     "stoat.js": "^7.3.6"
-  }
+  },
+  "type": "module"
 }
