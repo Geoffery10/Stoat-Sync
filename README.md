@@ -1,6 +1,6 @@
 # Stoat Sync
 
-![Stoat Sync Icon](/image/README/Stoat-Sync-Icon.png)
+![Stoat Sync Icon](/image/README/Stoat-Sync-Icon-Small.png)
 
 **Stoat Sync** is a bidirectional bridge between Discord and Stoat chat platforms, allowing seamless communication between users on both platforms. Messages, edits, and deletions are automatically synchronized in real-time.
 
