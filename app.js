@@ -1,24 +1,30 @@
 import { Client } from "stoat.js";
-import { config } from 'dotenv';
 import { Client as DiscordClient, GatewayIntentBits } from 'discord.js';
 import axios from 'axios';
 import FormData from 'form-data';
 import fs from 'fs/promises';
-import yaml from 'js-yaml';
 import { formatMessageForDiscord } from './messageFormatter.js';
 import { formatMessageForStoat } from './messageFormatter.js';
 import { logger } from './logger.js';
 import path from 'path';
 
-// Load environment variables
-config();
+// Import the config module
+import {
+  DISCORD_TOKEN,
+  STOAT_BOT_TOKEN,
+  STOAT_BASE_URL,
+  STOAT_API_URL,
+  STOAT_AUTUMN_URL,
+  loadChannelMappings
+} from './config.js';
 
-// Configuration
-const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
-const STOAT_BOT_TOKEN = process.env.STOAT_BOT_TOKEN;
-const STOAT_BASE_URL = process.env.STOAT_BASE_URL;
-const STOAT_API_URL = `${STOAT_BASE_URL}/api`;
-const STOAT_AUTUMN_URL = `${STOAT_BASE_URL}/autumn`;
+// Load channel mappings
+const { CHANNEL_MAPPING, STOAT_TO_DISCORD_MAPPING } = await loadChannelMappings();
+
+// Message mapping storage (Stoat message ID -> Discord message ID)
+const stoatToDiscordMapping = new Map();
+// Message mapping storage (Discord channel ID -> Map of Discord message ID -> Stoat message ID)
+const discordToStoatMapping = new Map();
 
 // Initialize Stoat client
 let stoatClient = new Client({baseURL: STOAT_API_URL});
@@ -31,21 +37,6 @@ const discordClient = new DiscordClient({
     GatewayIntentBits.MessageContent
   ]
 });
-
-// Load channel mappings
-const fileContents = await fs.readFile('channel_mapping.yaml', 'utf8');
-const CHANNEL_MAPPING = yaml.load(fileContents);
-
-// Reverse the mapping for Stoat -> Discord
-const STOAT_TO_DISCORD_MAPPING = {};
-for (const [discordId, stoatId] of Object.entries(CHANNEL_MAPPING)) {
-  STOAT_TO_DISCORD_MAPPING[stoatId] = discordId;
-}
-
-// Message mapping storage (Stoat message ID -> Discord message ID)
-const stoatToDiscordMapping = new Map();
-// Message mapping storage (Discord channel ID -> Map of Discord message ID -> Stoat message ID)
-const discordToStoatMapping = new Map();
 
 async function uploadAttachmentToStoat(filePath) {
     try {
@@ -103,7 +94,7 @@ stoatClient.on("messageCreate", async (message) => {
     const attachments = Array.isArray(message.attachments) ? message.attachments : [message.attachments];
     for (const attachment of attachments) {
       try {
-        const response = await fetch(`${process.env.STOAT_BASE_URL}/autumn/attachments/${attachment.id}`);
+        const response = await fetch(`${STOAT_BASE_URL}/autumn/attachments/${attachment.id}`);
         const buffer = await response.arrayBuffer();
         attachmentFiles.push({
           attachment: Buffer.from(buffer),
