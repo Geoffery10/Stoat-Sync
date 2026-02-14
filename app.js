@@ -117,8 +117,6 @@ stoatClient.on("messageCreate", async (message) => {
 
     // Store the mapping (Stoat message ID -> Discord message ID)
     stoatToDiscordMapping.set(message.id, sentMessage.id);
-
-    logger.info(`Successfully mirrored message from ${message.author.username} to Discord (Stoat ID: ${message.id} -> Discord ID: ${sentMessage.id})`);
   } catch (error) {
     logger.error(`Failed to send message to Discord: ${error.message}`);
   }
@@ -147,7 +145,6 @@ stoatClient.on("messageUpdate", async (oldMessage, newMessage) => {
     // Get the Discord message and edit it
     const discordMessage = await discordChannel.messages.fetch(discordMessageId);
     await discordMessage.edit(formattedContent);
-    logger.info(`Successfully updated message in Discord (Stoat ID: ${newMessage.id} -> Discord ID: ${discordMessageId})`);
   } catch (error) {
     logger.error(`Failed to update message in Discord: ${error.message}`);
   }
@@ -167,7 +164,6 @@ stoatClient.on("messageDelete", async (message) => {
     const discordChannel = await discordClient.channels.fetch(discordChannelId);
     const discordMessage = await discordChannel.messages.fetch(discordMessageId);
     await discordMessage.delete();
-    logger.info(`Successfully deleted message in Discord (Stoat ID: ${message.id} -> Discord ID: ${discordMessageId})`);
 
     // Remove from our mapping
     stoatToDiscordMapping.delete(message.id);
@@ -264,7 +260,6 @@ discordClient.on('messageCreate', async (message) => {
                 discordToStoatMapping.set(message.channelId, new Map());
             }
             discordToStoatMapping.get(message.channelId).set(message.id, stoatMessageId);
-            logger.info(`Successfully sent message from ${message.author.username} to Stoat (ID: ${stoatMessageId})`);
         } else {
             logger.warn("No message ID returned from Stoat API");
         }
@@ -307,7 +302,6 @@ discordClient.on('messageUpdate', async (oldMessage, newMessage) => {
                 }
             }
         );
-        logger.info(`Successfully edited message in Stoat (ID: ${stoatMessageId})`);
     } catch (error) {
         logger.error(`Failed to edit message: ${error.response?.status || 'Unknown'} - ${error.message}`);
     }
@@ -334,7 +328,6 @@ discordClient.on('messageDelete', async (message) => {
                 }
             }
         );
-        logger.info(`Successfully deleted message in Stoat (ID: ${stoatMessageId})`);
 
         // Remove from our mapping
         channelMap.delete(message.id);
