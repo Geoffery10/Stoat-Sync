@@ -104,7 +104,7 @@ export async function deleteMessageInDiscord(discordChannel, discordMessageId, m
     }
 }
 
-export async function sendMessageToStoat(message, stoatChannelId, STOAT_API_URL, STOAT_BOT_TOKEN) {
+export async function sendMessageToStoat(message, stoatChannelId, STOAT_API_URL, STOAT_BOT_TOKEN, STOAT_AUTUMN_URL) {
     // Format the message
     const formattedContent = await formatMessageForStoat(message);
 
