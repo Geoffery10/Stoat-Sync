@@ -43,7 +43,7 @@ const discordClient = new DiscordClient({
 async function uploadAttachmentToStoat(filePath) {
     try {
         if (!await fs.access(filePath).then(() => true).catch(() => false)) {
-            logger.log(`[!] Attachment not found locally: ${filePath}`);
+            logger.info(`[!] Attachment not found locally: ${filePath}`);
             return null;
         }
 
@@ -334,7 +334,7 @@ discordClient.on('messageDelete', async (message) => {
                 }
             }
         );
-        logger.log(`Successfully deleted message in Stoat (ID: ${stoatMessageId})`);
+        logger.info(`Successfully deleted message in Stoat (ID: ${stoatMessageId})`);
 
         // Remove from our mapping
         channelMap.delete(message.id);
