@@ -4,7 +4,7 @@ export function formatMessageForDiscord(message) {
     // Handle spoilers and mentions
     content = content.replace("!!", /\|\|/g).replace(/@everyone/g, "`@everyone`");
     
-    return `**${message.author.username}**\n ${content}`;
+    return `**${message.author.username}**\n${content}`;
 }
 
 export function formatMessageForStoat(message) {
@@ -25,5 +25,5 @@ export function formatMessageForStoat(message) {
     // Handle spoilers and mentions
     content = content.replace(/\|\|/g, "!!").replace(/@everyone/g, "`@everyone`");
 
-    return `**${message.author.username}**\n ${content}`;
+    return `**${message.author.username}**\n${content}`;
 }
