@@ -39,20 +39,37 @@ const discordClient = new DiscordClient({
     GatewayIntentBits.MessageContent
   ]
 });
+
+function shouldMirrorChannel(channelId, isStoatChannel = false) {
+  if (isStoatChannel) {
+    return STOAT_TO_DISCORD_MAPPING[channelId] !== undefined;
+  } else {
+    return CHANNEL_MAPPING[channelId] !== undefined;
+  }
+}
+
+function isBotMessage(message, isStoatMessage = false) {
+  if (isStoatMessage) {
+    return message.author.id === STOAT_BOT_ID ||
+           message.author.id === "01KH706FEP6ZVDTD0Y99W3FVEZ"; // Discord-Restore Bot
+  } else {
+    return message.author.id === DISCORD_BOT_ID || message.author.bot;
+  }
+}
+
+
 // Stoat Event Handlers
 stoatClient.on("ready", async () => {
   logger.info(`Logged in as ${stoatClient.user.username}!`);
 });
 
 stoatClient.on("messageCreate", async (message) => {
-  // Check if this Stoat channel should be mirrored
-  const discordChannelId = STOAT_TO_DISCORD_MAPPING[message.channelId];
-  if (!discordChannelId) return;
-
-  // Check if message is from bot
-  if (message.author.id == STOAT_BOT_ID) return;
+  if (!shouldMirrorChannel(message.channelId, true)) return;
+  if (isBotMessage(message, true)) return;
+  if (message.author.id == "01KH706FEP6ZVDTD0Y99W3FVEZ") return; // Ignore Discord-Restore Bot
 
   // Get the Discord channel
+  const discordChannelId = STOAT_TO_DISCORD_MAPPING[message.channelId];
   const discordChannel = await discordClient.channels.fetch(discordChannelId);
   if (!discordChannel) {
     logger.error(`Could not find Discord channel with ID ${discordChannelId}`);
@@ -68,15 +85,14 @@ stoatClient.on("messageCreate", async (message) => {
 });
 
 stoatClient.on("messageUpdate", async (oldMessage, newMessage) => {
-  // Check if this Stoat channel should be mirrored
-  const discordChannelId = STOAT_TO_DISCORD_MAPPING[newMessage.channelId];
-  if (!discordChannelId) return;
+  if (!shouldMirrorChannel(oldMessage.channelId, true)) return;
 
   // Get the Discord message ID from our mapping
   const discordMessageId = stoatToDiscordMapping.get(newMessage.id);
   if (!discordMessageId) return;
 
   // Get the Discord channel
+  const discordChannelId = STOAT_TO_DISCORD_MAPPING[oldMessage.channelId];
   const discordChannel = await discordClient.channels.fetch(discordChannelId);
   if (!discordChannel) {
     logger.error(`Could not find Discord channel with ID ${discordChannelId}`);
@@ -88,13 +104,14 @@ stoatClient.on("messageUpdate", async (oldMessage, newMessage) => {
 });
 
 stoatClient.on("messageDelete", async (message) => {
-  // Get the Discord message ID from our mapping
-  const discordMessageId = stoatToDiscordMapping.get(message.id);
-  if (!discordMessageId) return;
+    if (!shouldMirrorChannel(message.channelId, true)) return;
 
-  // Get the Discord channel ID from our mapping
-  const discordChannelId = STOAT_TO_DISCORD_MAPPING[message.channelId];
-  if (!discordChannelId) return;
+    // Get the Discord message ID from our mapping
+    const discordMessageId = stoatToDiscordMapping.get(message.id);
+    if (!discordMessageId) return;
+
+    // Get the Discord channel ID from our mapping
+    const discordChannelId = STOAT_TO_DISCORD_MAPPING[message.channelId];
 
   try {
     // Get the Discord channel
@@ -111,42 +128,18 @@ stoatClient.on("messageDelete", async (message) => {
   }
 });
 
-stoatClient.on("error", (error) => {
-    logger.error("Stoat error details:", {
-        message: error.message,
-        stack: error.stack,
-        context: error.context
-    });
-    // Attempt to reconnect after a delay
-    setTimeout(() => {
-        logger.info("Attempting to reconnect to Stoat...");
-        stoatClient.loginBot(STOAT_BOT_TOKEN);
-    }, 5000);
-});
-
-stoatClient.on("close", (code, reason) => {
-    logger.warn(`Stoat connection closed (${code}): ${reason}`);
-    // Attempt to reconnect
-    setTimeout(() => {
-        logger.info("Attempting to reconnect to Stoat...");
-        stoatClient.loginBot(STOAT_BOT_TOKEN);
-    }, 5000);
-});
-
 // Discord Event Handlers
 discordClient.on('ready', () => {
     logger.info(`Logged in as ${discordClient.user.tag}`);
 });
 
 discordClient.on('messageCreate', async (message) => {
-    // Ignore messages from the bot itself
-    if (message.author.id == DISCORD_BOT_ID) return;
+    if (!shouldMirrorChannel(message.channelId, false)) return;
+    if (isBotMessage(message, false)) return;
 
-    // Check if the message is in a channel we want to mirror
-    const stoatChannelId = CHANNEL_MAPPING[message.channelId];
-    if (!stoatChannelId) return;
 
     // Send message to Stoat
+    const stoatChannelId = CHANNEL_MAPPING[message.channelId];
     const stoatMessageId = await sendMessageToStoat(message, stoatChannelId, STOAT_API_URL, STOAT_BOT_TOKEN);
     if (stoatMessageId) {
         if (!discordToStoatMapping.has(message.channelId)) {
@@ -157,14 +150,12 @@ discordClient.on('messageCreate', async (message) => {
 });
 
 discordClient.on('messageUpdate', async (oldMessage, newMessage) => {
-    // Ignore if the message is from the bot itself
-    if (newMessage.author.bot) return;
+    if (!shouldMirrorChannel(newMessage.channelId, false)) return;
+    if (isBotMessage(newMessage, false)) return;
 
-    // Check if the message is in a channel we're mirroring
-    const stoatChannelId = CHANNEL_MAPPING[newMessage.channelId];
-    if (!stoatChannelId) return;
 
     // Check if we have a mapping for this message
+    const stoatChannelId = CHANNEL_MAPPING[newMessage.channelId];
     const channelMap = discordToStoatMapping.get(newMessage.channelId);
     if (!channelMap || !channelMap.has(newMessage.id)) return;
 
@@ -175,15 +166,14 @@ discordClient.on('messageUpdate', async (oldMessage, newMessage) => {
 });
 
 discordClient.on('messageDelete', async (message) => {
-    // Check if the message is in a channel we're mirroring
-    const stoatChannelId = CHANNEL_MAPPING[message.channelId];
-    if (!stoatChannelId) return;
+    if (!shouldMirrorChannel(message.channelId, false)) return;
 
     // Check if we have a mapping for this message
     const channelMap = discordToStoatMapping.get(message.channelId);
     if (!channelMap || !channelMap.has(message.id)) return;
 
     const stoatMessageId = channelMap.get(message.id);
+    const stoatChannelId = CHANNEL_MAPPING[message.channelId];
 
     // Delete message in Stoat
     const success = await deleteMessageInStoat(stoatChannelId, stoatMessageId, STOAT_API_URL, STOAT_BOT_TOKEN);
