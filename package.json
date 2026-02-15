@@ -11,9 +11,12 @@
   },
   "type": "module",
   "scripts": {
-    "test": "jest"
+    "test": "jest --localstorage-file=/dev/null"
   },
   "jest": {
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest.setup.js"
+    ],
     "moduleNameMapper": {
       "^stoat\\.js$": "<rootDir>/__mocks__/stoat.js"
     }
