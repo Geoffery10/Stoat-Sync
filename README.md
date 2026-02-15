@@ -1,4 +1,5 @@
 # Stoat Sync
+[![Tests](https://github.com/Geoffery10/Stoat-Sync/actions/workflows/tests.yml/badge.svg)](https://github.com/Geoffery10/Stoat-Sync/actions/workflows/tests.yml)
 
 ![Stoat Sync Icon](/image/README/Stoat-Sync-Icon-Small.png)
 
