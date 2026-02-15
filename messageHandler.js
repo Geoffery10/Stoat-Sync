@@ -60,28 +60,63 @@ export async function sendMessageToDiscord(message, discordChannel, STOAT_BASE_U
         }
     }
 
-    // Send the message to Discord
-    try {
-        const sentMessage = await discordChannel.send({
-            content: formattedContent,
-            files: attachmentFiles
-        });
+    // Get or create webhook
+    const webhook = await createOrGetWebhook(discordChannel);
+    if (!webhook) {
+        logger.error('Failed to get or create webhook');
+        return null;
+    }
 
+    // Prepare webhook message options
+    const webhookOptions = {
+        content: formattedContent,
+        username: message.author?.username || 'Stoat User',
+        avatarURL: message.author?.avatar
+            ? `${message.author.avatarURL}`
+            : 'https://i.imgur.com/ykjd3JO.jpeg', // Default Stoat avatar
+        files: attachmentFiles
+    };
+
+    // Send the message via webhook
+    try {
+        const sentMessage = await webhook.send(webhookOptions);
         return sentMessage;
     } catch (error) {
-        logger.error(`Failed to send message to Discord: ${error.message}`);
+        logger.error(`Failed to send message via webhook to Discord: ${error.message}`);
         return null;
     }
 }
 
-export async function editMessageInDiscord(discordChannel, discordMessageId, message) {
+export async function editMessageInDiscord(discordChannel, discordMessageId, message, STOAT_BASE_URL) {
     // Format the updated message
     const formattedContent = await formatMessageForDiscord(message);
 
     try {
-        // Get the Discord message and edit it
+        // Get the Discord message
         const discordMessage = await discordChannel.messages.fetch(discordMessageId);
-        await discordMessage.edit(formattedContent);
+
+        // Check if the message is from a webhook
+        if (discordMessage.webhookId) {
+            // Get the webhook
+            const webhook = await createOrGetWebhook(discordChannel);
+            if (!webhook) {
+                logger.error('Failed to get webhook for editing message');
+                return false;
+            }
+
+            // Edit the webhook message
+            await webhook.editMessage(discordMessageId, {
+                content: formattedContent,
+                username: message.author?.username || 'Stoat User',
+                avatarURL: message.author?.avatar
+                    ? `${message.author.avatarURL}`
+                    : 'https://i.imgur.com/ykjd3JO.jpeg'
+            });
+        } else {
+            // Edit regular message if not from webhook
+            await discordMessage.edit(formattedContent);
+        }
+
         return true;
     } catch (error) {
         logger.error(`Failed to update message in Discord: ${error.message}`);
@@ -202,5 +237,33 @@ export async function deleteMessageInStoat(stoatChannelId, stoatMessageId, STOAT
     } catch (error) {
         logger.error(`Failed to delete message: ${error.response?.status || 'Unknown'} - ${error.message}`);
         return false;
+    }
+}
+
+
+export async function createOrGetWebhook(discordChannel) {
+    const webhookNamePrefix = 'stoat';
+    try {
+        // Get existing webhooks for this channel
+        const webhooks = await discordChannel.fetchWebhooks();
+        const existingWebhook = webhooks.find(wh => wh.name.startsWith(webhookNamePrefix));
+
+        if (existingWebhook) {
+            return existingWebhook;
+        }
+
+        // Create a new webhook if none exists
+        const channelName = discordChannel.name.replace(/\s+/g, '-').toLowerCase();
+        const webhookName = `${webhookNamePrefix}-${channelName}`;
+
+        const newWebhook = await discordChannel.createWebhook({
+            name: webhookName,
+            avatar: 'https://i.imgur.com/ykjd3JO.jpeg'
+        });
+
+        return newWebhook;
+    } catch (error) {
+        logger.error(`Failed to create/get webhook: ${error.message}`);
+        return null;
     }
 }

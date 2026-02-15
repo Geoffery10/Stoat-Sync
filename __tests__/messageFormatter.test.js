@@ -6,7 +6,7 @@ describe('formatMessageForDiscord', () => {
       author: { username: 'TestUser' },
       content: 'Hello world'
     };
-    expect(formatMessageForDiscord(message)).toBe('**TestUser**\nHello world');
+    expect(formatMessageForDiscord(message)).toBe('Hello world');
   });
 
   it('should handle spoilers', () => {
@@ -14,7 +14,7 @@ describe('formatMessageForDiscord', () => {
       author: { username: 'TestUser' },
       content: 'This is a spoiler !!secret!!'
     };
-    expect(formatMessageForDiscord(message)).toBe('**TestUser**\nThis is a spoiler ||secret||');
+    expect(formatMessageForDiscord(message)).toBe('This is a spoiler ||secret||');
   });
 
   it('should handle @everyone mentions', () => {
@@ -22,7 +22,7 @@ describe('formatMessageForDiscord', () => {
       author: { username: 'TestUser' },
       content: 'Hey @everyone!'
     };
-    expect(formatMessageForDiscord(message)).toBe('**TestUser**\nHey `@everyone`!');
+    expect(formatMessageForDiscord(message)).toBe('Hey `@everyone`!');
   });
 });
 
