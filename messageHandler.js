@@ -168,13 +168,23 @@ export async function sendMessageToStoat(message, stoatChannelId, STOAT_API_URL,
         }
     }
 
+    // Get the best available avatar URL
+    let avatarUrl;
+    if (message.member && message.member.avatar) {
+        // Use server-specific avatar if available
+        avatarUrl = message.member.avatarURL({ dynamic: true, size: 256 });
+    } else if (message.author && message.author.avatar) {
+        // Fall back to global avatar
+        avatarUrl = message.author.avatarURL({ dynamic: true, size: 256 });
+    }
+
     // Prepare payload with masquerade
     const payload = {
         content: formattedContent,
         attachments: attachmentIds,
         masquerade: {
             name: message.author?.username || 'Unknown User',
-            avatar: message.author?.avatarURL()
+            avatar: avatarUrl || undefined
         }
     };
 
