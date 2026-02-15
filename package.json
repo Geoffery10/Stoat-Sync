@@ -9,5 +9,29 @@
     "revolt.js": "^7.2.0",
     "stoat.js": "^7.3.6"
   },
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.0",
+    "babel-jest": "^30.2.0",
+    "jest": "^30.2.0"
+  },
+  "name": "stoat-sync",
+  "version": "1.0.0",
+  "description": "![Stoat Sync Icon](/image/README/Stoat-Sync-Icon-Small.png)",
+  "main": "app.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Geoffery10/Stoat-Sync.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Geoffery10/Stoat-Sync/issues"
+  },
+  "homepage": "https://github.com/Geoffery10/Stoat-Sync#readme"
 }
