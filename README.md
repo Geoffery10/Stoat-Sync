@@ -40,7 +40,7 @@
 
 Start the synchronization:
 ```bash
-node app.js
+node bot.js
 ```
 
 ## Configuration
@@ -57,7 +57,7 @@ node app.js
 
 ## Architecture
 
-The system uses a single unified application (`app.js`) that handles bidirectional synchronization between Discord and Stoat. This simplified architecture:
+The system uses a single unified application (`bot.js`) that handles bidirectional synchronization between Discord and Stoat. This simplified architecture:
 
 1. Maintains a single connection to both platforms
 2. Handles all event types (messages, edits, deletions) in both directions
