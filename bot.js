@@ -118,7 +118,7 @@ discordClient.on('messageCreate', async (message) => {
 
     // Send message to Stoat
     const stoatChannelId = CHANNEL_MAPPING[message.channelId];
-    const stoatMessageId = await messageHandler.sendMessageToStoat(message, stoatChannelId, config.STOAT_API_URL, config.STOAT_BOT_TOKEN, config.STOAT_AUTUMN_URL);
+    const stoatMessageId = await messageHandler.sendMessageToStoat(message, stoatChannelId, config.STOAT_API_URL, config.STOAT_BOT_TOKEN, config.STOAT_AUTUMN_URL, config.STOAT_BASE_URL);
     if (stoatMessageId) {
         if (!messageHandler.discordToStoatMapping.has(message.channelId)) {
             messageHandler.discordToStoatMapping.set(message.channelId, new Map());

@@ -33,7 +33,7 @@ describe('formatMessageForStoat', () => {
       content: 'Hello world',
       mentions: { users: [], roles: [] }
     };
-    expect(formatMessageForStoat(message)).toBe('**TestUser**\nHello world');
+    expect(formatMessageForStoat(message)).toBe('Hello world');
   });
 
   it('should replace user mentions', () => {
@@ -45,7 +45,7 @@ describe('formatMessageForStoat', () => {
         roles: []
       }
     };
-    expect(formatMessageForStoat(message)).toBe('**TestUser**\nHello @MentionedUser!');
+    expect(formatMessageForStoat(message)).toBe('Hello @MentionedUser!');
   });
 
   it('should replace role mentions', () => {
@@ -57,7 +57,7 @@ describe('formatMessageForStoat', () => {
         roles: [{ id: '987654321', name: 'TestRole' }]
       }
     };
-    expect(formatMessageForStoat(message)).toBe('**TestUser**\nHello @TestRole!');
+    expect(formatMessageForStoat(message)).toBe('Hello @TestRole!');
   });
 
   it('should handle spoilers', () => {
@@ -66,7 +66,7 @@ describe('formatMessageForStoat', () => {
       content: 'This is a spoiler ||secret||',
       mentions: { users: [], roles: [] }
     };
-    expect(formatMessageForStoat(message)).toBe('**TestUser**\nThis is a spoiler !!secret!!');
+    expect(formatMessageForStoat(message)).toBe('This is a spoiler !!secret!!');
   });
 
   it('should handle @everyone mentions', () => {
@@ -75,6 +75,6 @@ describe('formatMessageForStoat', () => {
       content: 'Hey @everyone!',
       mentions: { users: [], roles: [] }
     };
-    expect(formatMessageForStoat(message)).toBe('**TestUser**\nHey `@everyone`!');
+    expect(formatMessageForStoat(message)).toBe('Hey `@everyone`!');
   });
 });

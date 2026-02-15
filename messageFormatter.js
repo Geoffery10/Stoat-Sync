@@ -25,5 +25,5 @@ export function formatMessageForStoat(message) {
     // Handle spoilers and mentions
     content = content.replaceAll("||", "!!").replaceAll(/@everyone/g, "`@everyone`");
 
-    return `**${message.author.username}**\n${content}`;
+    return `${content}`;
 }

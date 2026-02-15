@@ -139,7 +139,7 @@ export async function deleteMessageInDiscord(discordChannel, discordMessageId, m
     }
 }
 
-export async function sendMessageToStoat(message, stoatChannelId, STOAT_API_URL, STOAT_BOT_TOKEN, STOAT_AUTUMN_URL) {
+export async function sendMessageToStoat(message, stoatChannelId, STOAT_API_URL, STOAT_BOT_TOKEN, STOAT_AUTUMN_URL, STOAT_BASE_URL) {
     // Format the message
     const formattedContent = await formatMessageForStoat(message);
 
@@ -168,10 +168,14 @@ export async function sendMessageToStoat(message, stoatChannelId, STOAT_API_URL,
         }
     }
 
-    // Prepare payload
+    // Prepare payload with masquerade
     const payload = {
         content: formattedContent,
-        attachments: attachmentIds
+        attachments: attachmentIds,
+        masquerade: {
+            name: message.author?.username || 'Unknown User',
+            avatar: message.author?.avatarURL()
+        }
     };
 
     // Send to Stoat
