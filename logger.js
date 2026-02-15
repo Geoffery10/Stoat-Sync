@@ -79,7 +79,9 @@ function log(level, message, error = null) {
 }
 
 // Initialize logger
-loginToStoat();
+if (process.env.NODE_ENV !== 'test') {
+    loginToStoat();
+}
 
 // Export logger functions
 export const logger = {

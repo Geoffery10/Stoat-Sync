@@ -13,6 +13,11 @@
   "scripts": {
     "test": "jest"
   },
+  "jest": {
+    "moduleNameMapper": {
+      "^stoat\\.js$": "<rootDir>/__mocks__/stoat.js"
+    }
+  },
   "devDependencies": {
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.0",
