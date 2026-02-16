@@ -4,9 +4,6 @@ import { logger } from './logger.js';
 import * as config from './config.js';
 import * as messageHandler from './messageHandler.js';
 
-// Load channel mappings
-const { CHANNEL_MAPPING, STOAT_TO_DISCORD_MAPPING } = await config.loadChannelMappings();
-
 // Initialize Stoat client
 let stoatClient = new Client({baseURL: config.STOAT_API_URL});
 
@@ -21,9 +18,9 @@ const discordClient = new DiscordClient({
 
 function shouldMirrorChannel(channelId, isStoatChannel = false) {
   if (isStoatChannel) {
-    return STOAT_TO_DISCORD_MAPPING[channelId] !== undefined;
+    return config.STOAT_TO_DISCORD_MAPPING[channelId] !== undefined;
   } else {
-    return CHANNEL_MAPPING[channelId] !== undefined;
+    return config.CHANNEL_MAPPING[channelId] !== undefined;
   }
 }
 
@@ -48,7 +45,7 @@ stoatClient.on("messageCreate", async (message) => {
   if (message.author.id == "01KH706FEP6ZVDTD0Y99W3FVEZ") return; // Ignore Discord-Restore Bot
 
   // Get the Discord channel
-  const discordChannelId = STOAT_TO_DISCORD_MAPPING[message.channelId];
+  const discordChannelId = config.STOAT_TO_DISCORD_MAPPING[message.channelId];
   const discordChannel = await discordClient.channels.fetch(discordChannelId);
   if (!discordChannel) {
     logger.error(`Could not find Discord channel with ID ${discordChannelId}`);
@@ -56,7 +53,7 @@ stoatClient.on("messageCreate", async (message) => {
   }
 
   // Send message to Discord
-  const sentMessage = await messageHandler.sendMessageToDiscord(message, discordChannel, config.STOAT_BASE_URL);
+  const sentMessage = await messageHandler.sendMessageToDiscord(message, discordChannel, config);
   if (sentMessage) {
     // Store the mapping (Stoat message ID -> Discord message ID)
     messageHandler.stoatToDiscordMapping.set(message.id, sentMessage.id);
@@ -71,14 +68,14 @@ stoatClient.on("messageUpdate", async (oldMessage, newMessage) => {
   if (!discordMessageId) return;
 
   // Get the Discord channel
-  const discordChannelId = STOAT_TO_DISCORD_MAPPING[oldMessage.channelId];
+  const discordChannelId = config.STOAT_TO_DISCORD_MAPPING[oldMessage.channelId];
   const discordChannel = await discordClient.channels.fetch(discordChannelId);
   if (!discordChannel) {
     logger.error(`Could not find Discord channel with ID ${discordChannelId}`);
     return;
   }
 
-  await messageHandler.editMessageInDiscord(discordChannel, discordMessageId, oldMessage);
+  await messageHandler.editMessageInDiscord(discordChannel, discordMessageId, oldMessage, config);
 });
 
 stoatClient.on("messageDelete", async (message) => {
@@ -89,7 +86,7 @@ stoatClient.on("messageDelete", async (message) => {
     if (!discordMessageId) return;
 
     // Get the Discord channel ID from our mapping
-    const discordChannelId = STOAT_TO_DISCORD_MAPPING[message.channelId];
+    const discordChannelId = config.STOAT_TO_DISCORD_MAPPING[message.channelId];
 
   try {
     // Get the Discord channel
@@ -117,8 +114,8 @@ discordClient.on('messageCreate', async (message) => {
 
 
     // Send message to Stoat
-    const stoatChannelId = CHANNEL_MAPPING[message.channelId];
-    const stoatMessageId = await messageHandler.sendMessageToStoat(message, stoatChannelId, config.STOAT_API_URL, config.STOAT_BOT_TOKEN, config.STOAT_AUTUMN_URL, config.STOAT_BASE_URL);
+    const stoatChannelId = config.CHANNEL_MAPPING[message.channelId];
+    const stoatMessageId = await messageHandler.sendMessageToStoat(message, stoatChannelId, config);
     if (stoatMessageId) {
         if (!messageHandler.discordToStoatMapping.has(message.channelId)) {
             messageHandler.discordToStoatMapping.set(message.channelId, new Map());
@@ -133,13 +130,13 @@ discordClient.on('messageUpdate', async (oldMessage, newMessage) => {
 
 
     // Check if we have a mapping for this message
-    const stoatChannelId = CHANNEL_MAPPING[newMessage.channelId];
+    const stoatChannelId = config.CHANNEL_MAPPING[newMessage.channelId];
     const channelMap = messageHandler.discordToStoatMapping.get(newMessage.channelId);
     if (!channelMap || !channelMap.has(newMessage.id)) return;
 
     const stoatMessageId = channelMap.get(newMessage.id);
 
-    await messageHandler.editMessageInStoat(stoatChannelId, stoatMessageId, newMessage, config.STOAT_API_URL, config.STOAT_BOT_TOKEN);
+    await messageHandler.editMessageInStoat(stoatChannelId, stoatMessageId, newMessage, config);
 });
 
 discordClient.on('messageDelete', async (message) => {
@@ -150,9 +147,9 @@ discordClient.on('messageDelete', async (message) => {
     if (!channelMap || !channelMap.has(message.id)) return;
 
     const stoatMessageId = channelMap.get(message.id);
-    const stoatChannelId = CHANNEL_MAPPING[message.channelId];
+    const stoatChannelId = config.CHANNEL_MAPPING[message.channelId];
 
-    const success = await messageHandler.deleteMessageInStoat(stoatChannelId, stoatMessageId, config.STOAT_API_URL, config.STOAT_BOT_TOKEN);
+    const success = await messageHandler.deleteMessageInStoat(stoatChannelId, stoatMessageId, config);
     if (success) {
         // Remove from our mapping
         channelMap.delete(message.id);

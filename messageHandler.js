@@ -39,9 +39,9 @@ export async function uploadAttachmentToStoat(filePath, STOAT_AUTUMN_URL, STOAT_
     }
 }
 
-export async function sendMessageToDiscord(message, discordChannel, STOAT_BASE_URL) {
+export async function sendMessageToDiscord(message, discordChannel, config) {
     // Format the message
-    const formattedContent = await formatMessageForDiscord(message);
+    const formattedContent = await formatMessageForDiscord(message, config);
 
     // Handle attachments
     const attachmentFiles = [];
@@ -49,7 +49,7 @@ export async function sendMessageToDiscord(message, discordChannel, STOAT_BASE_U
         const attachments = Array.isArray(message.attachments) ? message.attachments : [message.attachments];
         for (const attachment of attachments) {
             try {
-                const response = await fetch(`${STOAT_BASE_URL}/autumn/attachments/${attachment.id}`);
+                const response = await fetch(`${config.STOAT_BASE_URL}/autumn/attachments/${attachment.id}`);
                 const buffer = await response.arrayBuffer();
                 attachmentFiles.push({
                     attachment: Buffer.from(buffer),
@@ -88,9 +88,9 @@ export async function sendMessageToDiscord(message, discordChannel, STOAT_BASE_U
     }
 }
 
-export async function editMessageInDiscord(discordChannel, discordMessageId, message, STOAT_BASE_URL) {
+export async function editMessageInDiscord(discordChannel, discordMessageId, message, config) {
     // Format the updated message
-    const formattedContent = await formatMessageForDiscord(message);
+    const formattedContent = await formatMessageForDiscord(message, config);
 
     try {
         // Get the Discord message
@@ -140,9 +140,9 @@ export async function deleteMessageInDiscord(discordChannel, discordMessageId, m
     }
 }
 
-export async function sendMessageToStoat(message, stoatChannelId, STOAT_API_URL, STOAT_BOT_TOKEN, STOAT_AUTUMN_URL, STOAT_BASE_URL) {
+export async function sendMessageToStoat(message, stoatChannelId, config) {
     // Format the message
-    const formattedContent = await formatMessageForStoat(message);
+    const formattedContent = await formatMessageForStoat(message, config);
 
     // Handle attachments
     const attachmentIds = [];
@@ -154,7 +154,7 @@ export async function sendMessageToStoat(message, stoatChannelId, STOAT_API_URL,
             await fs.writeFile(filePath, response.data);
 
             // Upload to Stoat
-            const uploadedId = await uploadAttachmentToStoat(filePath, STOAT_AUTUMN_URL, STOAT_BOT_TOKEN);
+            const uploadedId = await uploadAttachmentToStoat(filePath, config.STOAT_AUTUMN_URL, config.STOAT_BOT_TOKEN);
             if (uploadedId) {
                 attachmentIds.push(uploadedId);
             }
@@ -192,11 +192,11 @@ export async function sendMessageToStoat(message, stoatChannelId, STOAT_API_URL,
     // Send to Stoat
     try {
         const response = await axios.post(
-            `${STOAT_API_URL}/channels/${stoatChannelId}/messages`,
+            `${config.STOAT_API_URL}/channels/${stoatChannelId}/messages`,
             payload,
             {
                 headers: {
-                    'x-bot-token': STOAT_BOT_TOKEN,
+                    'x-bot-token': config.STOAT_BOT_TOKEN,
                     'Content-Type': 'application/json'
                 }
             }
@@ -209,9 +209,9 @@ export async function sendMessageToStoat(message, stoatChannelId, STOAT_API_URL,
     }
 }
 
-export async function editMessageInStoat(stoatChannelId, stoatMessageId, message, STOAT_API_URL, STOAT_BOT_TOKEN) {
+export async function editMessageInStoat(stoatChannelId, stoatMessageId, message, config) {
     // Format the edited message
-    const formattedContent = await formatMessageForStoat(message);
+    const formattedContent = await formatMessageForStoat(message, config);
 
     // Prepare payload
     const payload = {
@@ -225,7 +225,7 @@ export async function editMessageInStoat(stoatChannelId, stoatMessageId, message
             payload,
             {
                 headers: {
-                    'x-bot-token': STOAT_BOT_TOKEN,
+                    'x-bot-token': config.STOAT_BOT_TOKEN,
                     'Content-Type': 'application/json'
                 }
             }
@@ -237,14 +237,14 @@ export async function editMessageInStoat(stoatChannelId, stoatMessageId, message
     }
 }
 
-export async function deleteMessageInStoat(stoatChannelId, stoatMessageId, STOAT_API_URL, STOAT_BOT_TOKEN) {
+export async function deleteMessageInStoat(stoatChannelId, stoatMessageId, config) {
     // Delete the message in Stoat
     try {
         await axios.delete(
-            `${STOAT_API_URL}/channels/${stoatChannelId}/messages/${stoatMessageId}`,
+            `${config.STOAT_API_URL}/channels/${stoatChannelId}/messages/${stoatMessageId}`,
             {
                 headers: {
-                    'x-bot-token': STOAT_BOT_TOKEN
+                    'x-bot-token': config.STOAT_BOT_TOKEN
                 }
             }
         );
