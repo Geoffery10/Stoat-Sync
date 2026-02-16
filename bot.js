@@ -29,7 +29,7 @@ function isBotMessage(message, isStoatMessage = false) {
     return message.author.id === config.STOAT_BOT_ID ||
            message.author.id === "01KH706FEP6ZVDTD0Y99W3FVEZ"; // Discord-Restore Bot
   } else {
-    return message.author.id === config.DISCORD_BOT_ID || message.author.bot;
+    return message.author.id === config.DISCORD_BOT_ID;
   }
 }
 
