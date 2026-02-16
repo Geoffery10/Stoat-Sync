@@ -5,6 +5,7 @@ import { formatMessageForDiscord } from './messageFormatter.js';
 import { formatMessageForStoat } from './messageFormatter.js';
 import path from 'path';
 import FormData from 'form-data';
+import { createOrGetWebhook } from './webhookHandler.js';
 
 // Message mapping storage (Stoat message ID -> Discord message ID)
 export const stoatToDiscordMapping = new Map();
@@ -251,33 +252,5 @@ export async function deleteMessageInStoat(stoatChannelId, stoatMessageId, STOAT
     } catch (error) {
         logger.error(`Failed to delete message: ${error.response?.status || 'Unknown'} - ${error.message}`);
         return false;
-    }
-}
-
-
-export async function createOrGetWebhook(discordChannel) {
-    const webhookNamePrefix = 'stoat';
-    try {
-        // Get existing webhooks for this channel
-        const webhooks = await discordChannel.fetchWebhooks();
-        const existingWebhook = webhooks.find(wh => wh.name.startsWith(webhookNamePrefix));
-
-        if (existingWebhook) {
-            return existingWebhook;
-        }
-
-        // Create a new webhook if none exists
-        const channelName = discordChannel.name.replace(/\s+/g, '-').toLowerCase();
-        const webhookName = `${webhookNamePrefix}-${channelName}`;
-
-        const newWebhook = await discordChannel.createWebhook({
-            name: webhookName,
-            avatar: 'https://i.imgur.com/ykjd3JO.jpeg'
-        });
-
-        return newWebhook;
-    } catch (error) {
-        logger.error(`Failed to create/get webhook: ${error.message}`);
-        return null;
     }
 }
