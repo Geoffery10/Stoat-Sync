@@ -221,7 +221,7 @@ export async function editMessageInStoat(stoatChannelId, stoatMessageId, message
     // Send the edit to Stoat
     try {
         await axios.patch(
-            `${STOAT_API_URL}/channels/${stoatChannelId}/messages/${stoatMessageId}`,
+            `${config.STOAT_API_URL}/channels/${stoatChannelId}/messages/${stoatMessageId}`,
             payload,
             {
                 headers: {
