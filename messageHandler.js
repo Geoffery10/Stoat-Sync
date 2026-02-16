@@ -144,69 +144,84 @@ export async function sendMessageToStoat(message, stoatChannelId, config) {
     // Format the message
     const formattedContent = await formatMessageForStoat(message, config);
 
-    // Handle attachments
-    const attachmentIds = [];
-    for (const attachment of message.attachments.values()) {
-        const filePath = `temp_${attachment.id}_${attachment.name}`;
-        try {
-            // Download the attachment
-            const response = await axios.get(attachment.url, { responseType: 'arraybuffer' });
-            await fs.writeFile(filePath, response.data);
+    // Handle attachments in batches of 5 or less
+    const attachmentArray = Array.from(message.attachments.values());
+    const attachmentBatches = [];
+    const batchSize = 5;
 
-            // Upload to Stoat
-            const uploadedId = await uploadAttachmentToStoat(filePath, config.STOAT_AUTUMN_URL, config.STOAT_BOT_TOKEN);
-            if (uploadedId) {
-                attachmentIds.push(uploadedId);
-            }
+    // Split attachments into batches
+    for (let i = 0; i < attachmentArray.length; i += batchSize) {
+        attachmentBatches.push(attachmentArray.slice(i, i + batchSize));
+    }
 
-            // Clean up
-            await fs.unlink(filePath);
-        } catch (error) {
-            logger.error(`[!] Error uploading file: ${error.message} (File): ${attachment.name}`);
-            if (await fs.access(filePath).then(() => true).catch(() => false)) {
+    // Process each batch
+    const sentMessageIds = [];
+    for (const [batchIndex, batch] of attachmentBatches.entries()) {
+        const attachmentIds = [];
+
+        for (const attachment of batch) {
+            const filePath = `temp_${attachment.id}_${attachment.name}`;
+            try {
+                // Download the attachment
+                const response = await axios.get(attachment.url, { responseType: 'arraybuffer' });
+                await fs.writeFile(filePath, response.data);
+
+                // Upload to Stoat
+                const uploadedId = await uploadAttachmentToStoat(filePath, config.STOAT_AUTUMN_URL, config.STOAT_BOT_TOKEN);
+                if (uploadedId) {
+                    attachmentIds.push(uploadedId);
+                }
+
+                // Clean up
                 await fs.unlink(filePath);
-            }
-        }
-    }
-
-    // Get the best available avatar URL
-    let avatarUrl;
-    if (message.member && message.member.avatar) {
-        // Use server-specific avatar if available
-        avatarUrl = message.member.avatarURL({ dynamic: true, size: 256 });
-    } else if (message.author && message.author.avatar) {
-        // Fall back to global avatar
-        avatarUrl = message.author.avatarURL({ dynamic: true, size: 256 });
-    }
-
-    // Prepare payload with masquerade
-    const payload = {
-        content: formattedContent,
-        attachments: attachmentIds,
-        masquerade: {
-            name: message.author?.username || 'Unknown User',
-            avatar: avatarUrl || undefined
-        }
-    };
-
-    // Send to Stoat
-    try {
-        const response = await axios.post(
-            `${config.STOAT_API_URL}/channels/${stoatChannelId}/messages`,
-            payload,
-            {
-                headers: {
-                    'x-bot-token': config.STOAT_BOT_TOKEN,
-                    'Content-Type': 'application/json'
+            } catch (error) {
+                logger.error(`[!] Error uploading file: ${error.message} (File): ${attachment.name}`);
+                if (await fs.access(filePath).then(() => true).catch(() => false)) {
+                    await fs.unlink(filePath);
                 }
             }
-        );
+        }
 
-        return response.data?._id;
-    } catch (error) {
-        logger.error(`Failed to send message: ${error.response?.status || 'Unknown'} - ${error.message}`);
-        return null;
+        // Get the best available avatar URL
+        let avatarUrl;
+        if (message.member && message.member.avatar) {
+            // Use server-specific avatar if available
+            avatarUrl = message.member.avatarURL({ dynamic: true, size: 256 });
+        } else if (message.author && message.author.avatar) {
+            // Fall back to global avatar
+            avatarUrl = message.author.avatarURL({ dynamic: true, size: 256 });
+        }
+
+        // Prepare payload with masquerade
+        const payload = {
+            content: batchIndex === 0 ? formattedContent : '', // Only include content in first batch
+            attachments: attachmentIds,
+            masquerade: {
+                name: message.author?.username || 'Unknown User',
+                avatar: avatarUrl || undefined
+            }
+        };
+
+        // Send to Stoat
+        try {
+            const response = await axios.post(
+                `${config.STOAT_API_URL}/channels/${stoatChannelId}/messages`,
+                payload,
+                {
+                    headers: {
+                        'x-bot-token': config.STOAT_BOT_TOKEN,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            sentMessageIds.push(response.data?._id);
+        } catch (error) {
+            logger.error(`Failed to send message batch ${batchIndex + 1}: ${error.response?.status || 'Unknown'} - ${error.message}`);
+        }
     }
+
+    return sentMessageIds.length > 0 ? sentMessageIds : null;
 }
 
 export async function editMessageInStoat(stoatChannelId, stoatMessageId, message, config) {
