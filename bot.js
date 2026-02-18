@@ -29,7 +29,13 @@ function isBotMessage(message, isStoatMessage = false) {
     return message.author.id === config.STOAT_BOT_ID ||
            message.author.id === "01KH706FEP6ZVDTD0Y99W3FVEZ"; // Discord-Restore Bot
   } else {
-    return message.author.id === config.DISCORD_BOT_ID;
+    // Check if the message is from the bot user itself
+    if (message.author.id === config.DISCORD_BOT_ID) return true;
+
+    // Check if the message is from a webhook created by THIS bot.
+    if (message.webhookId && message.applicationId === config.DISCORD_BOT_ID) return true;
+
+    return false;
   }
 }
 
