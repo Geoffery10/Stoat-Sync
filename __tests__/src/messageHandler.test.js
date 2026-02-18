@@ -1,14 +1,14 @@
-import { uploadAttachmentToStoat } from '../messageHandler.js';
+import { uploadAttachmentToStoat } from '../../src/messageHandler.js';
 import axios from 'axios';
 import fs from 'fs/promises';
 import FormData from 'form-data';
-import { logger } from '../logger.js';
+import { logger } from '../../src/logger.js';
 
 // Mock dependencies
 jest.mock('axios');
 jest.mock('fs/promises');
 jest.mock('form-data');
-jest.mock('../logger.js');
+jest.mock('../../src/logger.js');
 
 describe('uploadAttachmentToStoat', () => {
   const mockFilePath = '/tmp/test-file.txt';

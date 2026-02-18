@@ -1,8 +1,8 @@
 import { Client } from "stoat.js";
 import { Client as DiscordClient, GatewayIntentBits } from 'discord.js';
-import { logger } from './logger.js';
-import * as config from './config.js';
-import * as messageHandler from './messageHandler.js';
+import { logger } from './src/logger.js';
+import * as config from './src/config.js';
+import * as messageHandler from './src/messageHandler.js';
 
 // Initialize Stoat client
 let stoatClient = new Client({baseURL: config.STOAT_API_URL});

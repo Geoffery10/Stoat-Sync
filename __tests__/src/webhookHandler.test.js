@@ -1,8 +1,8 @@
-import { createOrGetWebhook } from '../webhookHandler.js';
-import { logger } from '../logger.js';
+import { createOrGetWebhook } from '../../src/webhookHandler.js';
+import { logger } from '../../src/logger.js';
 
 // Mock dependencies
-jest.mock('../logger.js');
+jest.mock('../../src/logger.js');
 
 describe('createOrGetWebhook', () => {
   const mockChannelName = 'test-channel';

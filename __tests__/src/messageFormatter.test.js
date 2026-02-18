@@ -1,4 +1,4 @@
-import { formatMessageForDiscord, formatMessageForStoat, convertChannelId } from '../messageFormatter';
+import { formatMessageForDiscord, formatMessageForStoat, convertChannelId } from '../../src/messageFormatter';
 
 describe('formatMessageForDiscord', () => {
   it('should format a simple message', () => {
