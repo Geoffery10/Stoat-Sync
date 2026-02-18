@@ -4,6 +4,10 @@ import { logger } from './src/logger.js';
 import * as config from './src/config.js';
 import * as messageHandler from './src/messageHandler.js';
 
+import discordMessageCreate from './src/events/discord/messageCreate.js';
+import discordMessageUpdate from './src/events/discord/messageUpdate.js';
+import discordMessageDelete from './src/events/discord/messageDelete.js';
+
 // Initialize Stoat client
 let stoatClient = new Client({baseURL: config.STOAT_API_URL});
 
@@ -16,7 +20,7 @@ const discordClient = new DiscordClient({
   ]
 });
 
-function shouldMirrorChannel(channelId, isStoatChannel = false) {
+export function shouldMirrorChannel(channelId, isStoatChannel = false) {
   if (isStoatChannel) {
     return config.STOAT_TO_DISCORD_MAPPING[channelId] !== undefined;
   } else {
@@ -24,7 +28,7 @@ function shouldMirrorChannel(channelId, isStoatChannel = false) {
   }
 }
 
-function isBotMessage(message, isStoatMessage = false) {
+export function isBotMessage(message, isStoatMessage = false) {
   if (isStoatMessage) {
     return message.author.id === config.STOAT_BOT_ID ||
            message.author.id === "01KH706FEP6ZVDTD0Y99W3FVEZ"; // Discord-Restore Bot
@@ -113,54 +117,9 @@ stoatClient.on("messageDelete", async (message) => {
 discordClient.on('clientReady', () => {
     logger.info(`Logged in as ${discordClient.user.tag}`);
 });
-
-discordClient.on('messageCreate', async (message) => {
-    if (!shouldMirrorChannel(message.channelId, false)) return;
-    if (isBotMessage(message, false)) return;
-
-
-    // Send message to Stoat
-    const stoatChannelId = config.CHANNEL_MAPPING[message.channelId];
-    const stoatMessageId = await messageHandler.sendMessageToStoat(message, stoatChannelId, config);
-    if (stoatMessageId) {
-        if (!messageHandler.discordToStoatMapping.has(message.channelId)) {
-            messageHandler.discordToStoatMapping.set(message.channelId, new Map());
-        }
-        messageHandler.discordToStoatMapping.get(message.channelId).set(message.id, stoatMessageId);
-    }
-});
-
-discordClient.on('messageUpdate', async (oldMessage, newMessage) => {
-    if (!shouldMirrorChannel(newMessage.channelId, false)) return;
-    if (isBotMessage(newMessage, false)) return;
-
-
-    // Check if we have a mapping for this message
-    const stoatChannelId = config.CHANNEL_MAPPING[newMessage.channelId];
-    const channelMap = messageHandler.discordToStoatMapping.get(newMessage.channelId);
-    if (!channelMap || !channelMap.has(newMessage.id)) return;
-
-    const stoatMessageId = channelMap.get(newMessage.id);
-
-    await messageHandler.editMessageInStoat(stoatChannelId, stoatMessageId, newMessage, config);
-});
-
-discordClient.on('messageDelete', async (message) => {
-    if (!shouldMirrorChannel(message.channelId, false)) return;
-
-    // Check if we have a mapping for this message
-    const channelMap = messageHandler.discordToStoatMapping.get(message.channelId);
-    if (!channelMap || !channelMap.has(message.id)) return;
-
-    const stoatMessageId = channelMap.get(message.id);
-    const stoatChannelId = config.CHANNEL_MAPPING[message.channelId];
-
-    const success = await messageHandler.deleteMessageInStoat(stoatChannelId, stoatMessageId, config);
-    if (success) {
-        // Remove from our mapping
-        channelMap.delete(message.id);
-    }
-});
+discordClient.on('messageCreate', discordMessageCreate);
+discordClient.on('messageUpdate', discordMessageUpdate);
+discordClient.on('messageDelete', discordMessageDelete);
 
 
 // Login to both clients
