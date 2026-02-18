@@ -110,7 +110,7 @@ stoatClient.on("messageDelete", async (message) => {
 
 
 // Discord Event Handlers
-discordClient.on('ready', () => {
+discordClient.on('clientReady', () => {
     logger.info(`Logged in as ${discordClient.user.tag}`);
 });
 
