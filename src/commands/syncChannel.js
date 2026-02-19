@@ -7,6 +7,14 @@ export const data = new SlashCommandBuilder()
 	.addStringOption((option) => option.setName('stoatid').setDescription('The Stoat channel ID to sync').setRequired(true));
 
 export async function execute(interaction) {
+    if (!interaction.member.permissions.has('Administrator')) {
+        await interaction.reply({
+            content: '❌ You must be an administrator to use this command.',
+            ephemeral: true
+        });
+        return;
+    }
+    
     const stoatId = interaction.options.getString('stoatid');
     const discordId = interaction.channelId;
 
