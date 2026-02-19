@@ -14,7 +14,14 @@ describe('messageUpdate event handler', () => {
         }
     };
 
-    const mockMessage = {
+    const mockOldMessage = {
+        channelId: 'discord-channel-1',
+        id: 'message-123',
+        author: { bot: false },
+        content: 'Original message content'
+    };
+
+    const mockNewMessage = {
         channelId: 'discord-channel-1',
         id: 'message-123',
         author: { bot: false },
@@ -30,10 +37,10 @@ describe('messageUpdate event handler', () => {
     it('should return early if channel should not be mirrored', async () => {
         shouldMirrorChannel.mockReturnValue(false);
 
-        await messageUpdate(mockMessage, mockConfig);
+        await messageUpdate(mockOldMessage, mockNewMessage, mockConfig);
 
         expect(shouldMirrorChannel).toHaveBeenCalledWith(
-            mockMessage.channelId,
+            mockNewMessage.channelId,
             mockConfig,
             false
         );
@@ -45,9 +52,9 @@ describe('messageUpdate event handler', () => {
         shouldMirrorChannel.mockReturnValue(true);
         isBotMessage.mockReturnValue(true);
 
-        await messageUpdate(mockMessage, mockConfig);
+        await messageUpdate(mockOldMessage, mockNewMessage, mockConfig);
 
-        expect(isBotMessage).toHaveBeenCalledWith(mockMessage, mockConfig, false);
+        expect(isBotMessage).toHaveBeenCalledWith(mockNewMessage, mockConfig, false);
         expect(messageHandler.editMessageInStoat).not.toHaveBeenCalled();
     });
 
@@ -56,7 +63,7 @@ describe('messageUpdate event handler', () => {
         isBotMessage.mockReturnValue(false);
 
         // Don't set up any mapping
-        await messageUpdate(mockMessage, mockConfig);
+        await messageUpdate(mockOldMessage, mockNewMessage, mockConfig);
 
         expect(messageHandler.editMessageInStoat).not.toHaveBeenCalled();
     });
@@ -67,15 +74,15 @@ describe('messageUpdate event handler', () => {
 
         // Set up the mapping
         const channelMap = new Map();
-        channelMap.set(mockMessage.id, 'stoat-message-456');
-        messageHandler.discordToStoatMapping.set(mockMessage.channelId, channelMap);
+        channelMap.set(mockNewMessage.id, 'stoat-message-456');
+        messageHandler.discordToStoatMapping.set(mockNewMessage.channelId, channelMap);
 
-        await messageUpdate(mockMessage, mockConfig);
+        await messageUpdate(mockOldMessage, mockNewMessage, mockConfig);
 
         expect(messageHandler.editMessageInStoat).toHaveBeenCalledWith(
-            mockConfig.CHANNEL_MAPPING[mockMessage.channelId],
+            mockConfig.CHANNEL_MAPPING[mockNewMessage.channelId],
             'stoat-message-456',
-            mockMessage,
+            mockNewMessage,
             mockConfig
         );
     });
@@ -87,9 +94,9 @@ describe('messageUpdate event handler', () => {
         // Set up mapping without the specific message
         const channelMap = new Map();
         channelMap.set('other-message-id', 'stoat-message-789');
-        messageHandler.discordToStoatMapping.set(mockMessage.channelId, channelMap);
+        messageHandler.discordToStoatMapping.set(mockNewMessage.channelId, channelMap);
 
-        await messageUpdate(mockMessage, mockConfig);
+        await messageUpdate(mockOldMessage, mockNewMessage, mockConfig);
 
         expect(messageHandler.editMessageInStoat).not.toHaveBeenCalled();
     });

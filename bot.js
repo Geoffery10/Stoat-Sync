@@ -40,7 +40,7 @@ discordClient.on('clientReady', () => {
     logger.info(`Logged in as ${discordClient.user.tag}`);
 });
 discordClient.on('messageCreate', (message) => discordMessageCreate(message, config));
-discordClient.on('messageUpdate', (message) => discordMessageUpdate(message, config));
+discordClient.on('messageUpdate', (oldMessage, newMessage) => discordMessageUpdate(oldMessage, newMessage, config));
 discordClient.on('messageDelete', (message) => discordMessageDelete(message, config));
 
 
