@@ -1,4 +1,4 @@
-import { shouldMirrorChannel, isBotMessage } from '../../utils/channelUtils.js';
+import { shouldMirrorChannel } from '../../utils/channelUtils.js';
 import * as messageHandler from '../../messageHandler.js';
 import * as config from '../../config.js';
 import { discordClient } from '../../../bot.js';
