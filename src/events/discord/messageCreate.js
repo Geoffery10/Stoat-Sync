@@ -1,9 +1,9 @@
-import { shouldMirrorChannel, isBotMessage } from '../../../bot.js';
+import { shouldMirrorChannel, isBotMessage } from '../../utils/channelUtils.js';
 import * as messageHandler from '../../messageHandler.js';
 import * as config from '../../config.js';
 
 export default async function(message) {
-    if (!shouldMirrorChannel(message.channelId, false)) return;
+    if (!shouldMirrorChannel(message.channelId, config, false)) return;
     if (isBotMessage(message, false)) return;
 
     // Send message to Stoat

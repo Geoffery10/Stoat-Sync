@@ -1,9 +1,9 @@
-import { shouldMirrorChannel } from '../../../bot.js';
+import { shouldMirrorChannel } from '../../utils/channelUtils.js';
 import * as messageHandler from '../../messageHandler.js';
 import * as config from '../../config.js';
 
 export default async function(message) {
-    if (!shouldMirrorChannel(message.channelId, false)) return;
+    if (!shouldMirrorChannel(message.channelId, config, false)) return;
 
     // Check if we have a mapping for this message
     const channelMap = messageHandler.discordToStoatMapping.get(message.channelId);

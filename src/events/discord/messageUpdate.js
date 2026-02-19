@@ -1,9 +1,9 @@
-import { shouldMirrorChannel, isBotMessage } from '../../../bot.js';
+import { shouldMirrorChannel, isBotMessage } from '../../utils/channelUtils.js';
 import * as messageHandler from '../../messageHandler.js';
 import * as config from '../../config.js';
 
 export default async function(oldMessage, newMessage) {
-    if (!shouldMirrorChannel(newMessage.channelId, false)) return;
+    if (!shouldMirrorChannel(newMessage.channelId, config, false)) return;
     if (isBotMessage(newMessage, false)) return;
 
     // Check if we have a mapping for this message

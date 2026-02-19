@@ -1,4 +1,4 @@
-import { shouldMirrorChannel, isBotMessage } from '../../../bot.js';
+import { shouldMirrorChannel, isBotMessage } from '../../utils/channelUtils.js';
 import * as messageHandler from '../../messageHandler.js';
 import * as config from '../../config.js';
 import { discordClient } from '../../../bot.js';
@@ -27,7 +27,7 @@ async function sendMessageToDiscord(message, discordChannel) {
 }
 
 export default async function(message) {
-    if (!shouldMirrorChannel(message.channelId, true)) return;
+    if (!shouldMirrorChannel(message.channelId, config, true)) return;
     if (isBotMessage(message, true)) return;
     if (message.author.id == "01KH706FEP6ZVDTD0Y99W3FVEZ") return; // Ignore Discord-Restore Bot
 
