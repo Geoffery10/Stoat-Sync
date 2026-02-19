@@ -46,7 +46,7 @@ describe('messageCreate event handler', () => {
 
         await messageCreate(mockMessage, mockConfig);
 
-        expect(isBotMessage).toHaveBeenCalledWith(mockMessage, false);
+        expect(isBotMessage).toHaveBeenCalledWith(mockMessage, mockConfig, false);
         expect(messageHandler.sendMessageToStoat).not.toHaveBeenCalled();
     });
 

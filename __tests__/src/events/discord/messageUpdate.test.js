@@ -47,7 +47,7 @@ describe('messageUpdate event handler', () => {
 
         await messageUpdate(mockMessage, mockConfig);
 
-        expect(isBotMessage).toHaveBeenCalledWith(mockMessage, false);
+        expect(isBotMessage).toHaveBeenCalledWith(mockMessage, mockConfig, false);
         expect(messageHandler.editMessageInStoat).not.toHaveBeenCalled();
     });
 

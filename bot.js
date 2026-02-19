@@ -41,7 +41,7 @@ discordClient.on('clientReady', () => {
 });
 discordClient.on('messageCreate', (message) => discordMessageCreate(message, config));
 discordClient.on('messageUpdate', (message) => discordMessageUpdate(message, config));
-discordClient.on('messageDelete', discordMessageDelete);
+discordClient.on('messageDelete', (message) => discordMessageDelete(message, config));
 
 
 // Login to both clients
