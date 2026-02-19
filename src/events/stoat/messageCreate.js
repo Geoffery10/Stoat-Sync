@@ -28,7 +28,7 @@ async function sendMessageToDiscord(message, discordChannel) {
 
 export default async function(message) {
     if (!shouldMirrorChannel(message.channelId, config, true)) return;
-    if (isBotMessage(message, true)) return;
+    if (isBotMessage(message, config, true)) return;
     if (message.author.id == "01KH706FEP6ZVDTD0Y99W3FVEZ") return; // Ignore Discord-Restore Bot
 
     const discordChannelId = config.STOAT_TO_DISCORD_MAPPING[message.channelId];

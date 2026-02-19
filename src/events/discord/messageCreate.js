@@ -3,7 +3,7 @@ import * as messageHandler from '../../messageHandler.js';
 
 export default async function(message, config) {
     if (!shouldMirrorChannel(message.channelId, config, false)) return;
-    if (isBotMessage(message, false)) return;
+    if (isBotMessage(message, config, false)) return;
 
     // Send message to Stoat
     const stoatChannelId = config.CHANNEL_MAPPING[message.channelId];
