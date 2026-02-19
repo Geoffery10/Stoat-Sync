@@ -39,7 +39,7 @@ stoatClient.on("messageDelete", stoatMessageDelete);
 discordClient.on('clientReady', () => {
     logger.info(`Logged in as ${discordClient.user.tag}`);
 });
-discordClient.on('messageCreate', discordMessageCreate);
+discordClient.on('messageCreate', (message) => discordMessageCreate(message, config));
 discordClient.on('messageUpdate', discordMessageUpdate);
 discordClient.on('messageDelete', discordMessageDelete);
 
