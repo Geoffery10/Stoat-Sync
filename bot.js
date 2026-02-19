@@ -15,6 +15,7 @@ import discordMessageDelete from './src/events/discord/messageDelete.js';
 
 // Import Commands
 import * as syncChannelCommand from './src/commands/syncChannel.js';
+import * as unsyncChannelCommand from './src/commands/unsyncChannel.js';
 
 // Initialize Stoat client
 let stoatClient = new Client({baseURL: config.STOAT_API_URL});
@@ -50,7 +51,12 @@ discordClient.on('clientReady', async () => {
         // Sync to specific test guild
         await rest.put(
             Routes.applicationGuildCommands(discordClient.user.id, '254779349352448001'),
-            { body: [syncChannelCommand.data.toJSON()] },
+            { body: 
+              [
+                syncChannelCommand.data.toJSON(),
+                unsyncChannelCommand.data.toJSON()
+              ] 
+            },
         );
 
         logger.info('Successfully reloaded application (/) commands.');
@@ -74,7 +80,20 @@ discordClient.on('interactionCreate', async (interaction) => {
             }
         }
     }
-});
+    else if (interaction.commandName === unsyncChannelCommand.data.name) {
+        try {
+            await unsyncChannelCommand.execute(interaction);
+        } catch (error) {
+            logger.error(error);
+            if (interaction.replied || interaction.deferred) {
+                await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+            } else {
+                await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+            }
+        }
+      }
+  }
+);
 
 discordClient.on('messageCreate', (message) => discordMessageCreate(message, config));
 discordClient.on('messageUpdate', (oldMessage, newMessage) => discordMessageUpdate(oldMessage, newMessage, config));
