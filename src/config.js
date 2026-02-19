@@ -1,6 +1,5 @@
 import { config } from 'dotenv';
-import fs from 'fs/promises';
-import yaml from 'js-yaml';
+import { loadChannelMappings } from './utils/channelMappingUtils.js';
 
 config();
 
@@ -9,15 +8,8 @@ let channelMappings = { CHANNEL_MAPPING: {}, STOAT_TO_DISCORD_MAPPING: {} };
 
 // Try to load the channel mappings file
 try {
-    const fileContents = await fs.readFile('channel_mapping.yaml', 'utf8');
-    const CHANNEL_MAPPING = yaml.load(fileContents) || {};
-
-    const STOAT_TO_DISCORD_MAPPING = {};
-    for (const [discordId, stoatId] of Object.entries(CHANNEL_MAPPING)) {
-        STOAT_TO_DISCORD_MAPPING[stoatId] = discordId;
-    }
-
-    channelMappings = { CHANNEL_MAPPING, STOAT_TO_DISCORD_MAPPING };
+    const loadedMappings = await loadChannelMappings();
+    channelMappings = loadedMappings;
 } catch (error) {
     console.error('Failed to load channel mappings:', error);
     // Continue with empty mappings if file doesn't exist or can't be read
@@ -48,15 +40,9 @@ export const CONFIG = {
     STOAT_TO_DISCORD_MAPPING
 };
 
-// Keep the async function for cases where you need to reload mappings
-export async function loadChannelMappings() {
-    const fileContents = await fs.readFile('channel_mapping.yaml', 'utf8');
-    const CHANNEL_MAPPING = yaml.load(fileContents) || {};
-
-    const STOAT_TO_DISCORD_MAPPING = {};
-    for (const [discordId, stoatId] of Object.entries(CHANNEL_MAPPING)) {
-        STOAT_TO_DISCORD_MAPPING[stoatId] = discordId;
-    }
-
-    return { CHANNEL_MAPPING, STOAT_TO_DISCORD_MAPPING };
-}
+// Export the utility functions for other modules to use
+export { loadChannelMappings } from './utils/channelMappingUtils.js';
+export { addChannelMapping } from './utils/channelMappingUtils.js';
+export { removeChannelMapping } from './utils/channelMappingUtils.js';
+export { getStoatIdForDiscord } from './utils/channelMappingUtils.js';
+export { getDiscordIdForStoat } from './utils/channelMappingUtils.js';
