@@ -11,7 +11,9 @@
   },
   "type": "module",
   "scripts": {
-    "test": "jest --localstorage-file=/dev/null"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "jest": {
     "setupFilesAfterEnv": [
