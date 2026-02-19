@@ -1,10 +1,9 @@
 import { shouldMirrorChannel } from '../../utils/channelUtils.js';
 import * as messageHandler from '../../messageHandler.js';
-import * as config from '../../config.js';
 import { discordClient } from '../../../bot.js';
 import { logger } from '../../logger.js';
 
-export default async function(message) {
+export default async function(message, config) {
     if (!shouldMirrorChannel(message.channelId, config, true)) return;
 
     // Get the Discord message ID from our mapping

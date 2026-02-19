@@ -30,9 +30,9 @@ export const discordClient = new DiscordClient({
 stoatClient.on("ready", async () => {
   logger.info(`Logged in as ${stoatClient.user.username}!`);
 });
-stoatClient.on("messageCreate", stoatMessageCreate);
-stoatClient.on("messageUpdate", stoatMessageUpdate);
-stoatClient.on("messageDelete", stoatMessageDelete);
+stoatClient.on("messageCreate", (message) => stoatMessageCreate(message, config));
+stoatClient.on("messageUpdate", (oldMessage, newMessage) => stoatMessageUpdate(oldMessage, newMessage, config));
+stoatClient.on("messageDelete", (message) => stoatMessageDelete(message, config));
 
 
 // Discord Event Handlers

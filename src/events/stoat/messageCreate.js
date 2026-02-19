@@ -1,6 +1,5 @@
 import { shouldMirrorChannel, isBotMessage } from '../../utils/channelUtils.js';
 import * as messageHandler from '../../messageHandler.js';
-import * as config from '../../config.js';
 import { discordClient } from '../../../bot.js';
 import { logger } from '../../logger.js';
 
@@ -18,7 +17,7 @@ async function getDiscordChannel(channelId) {
     }
 }
 
-async function sendMessageToDiscord(message, discordChannel) {
+async function sendMessageToDiscord(message, discordChannel, config) {
     const sentMessage = await messageHandler.sendMessageToDiscord(message, discordChannel, config);
     if (sentMessage) {
         messageHandler.stoatToDiscordMapping.set(message.id, sentMessage.id);
@@ -26,7 +25,7 @@ async function sendMessageToDiscord(message, discordChannel) {
     return sentMessage;
 }
 
-export default async function(message) {
+export default async function(message, config) {
     if (!shouldMirrorChannel(message.channelId, config, true)) return;
     if (isBotMessage(message, config, true)) return;
     if (message.author.id == "01KH706FEP6ZVDTD0Y99W3FVEZ") return; // Ignore Discord-Restore Bot
@@ -35,5 +34,5 @@ export default async function(message) {
     const discordChannel = await getDiscordChannel(discordChannelId);
     if (!discordChannel) return;
 
-    await sendMessageToDiscord(message, discordChannel);
+    await sendMessageToDiscord(message, discordChannel, config);
 }
