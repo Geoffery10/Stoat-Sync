@@ -1,6 +1,5 @@
 # Stoat Sync
-[![Tests](https://github.com/Geoffery10/Stoat-Sync/actions/workflows/tests.yml/badge.svg)](https://github.com/Geoffery10/Stoat-Sync/actions/workflows/tests.yml) [![Code Coverage](https://img.shields.io/codecov/c/github/Geoffery10/Stoat-Sync
-)](https://codecov.io/github/Geoffery10/Stoat-Sync)
+[![Tests](https://github.com/Geoffery10/Stoat-Sync/actions/workflows/tests.yml/badge.svg)](https://github.com/Geoffery10/Stoat-Sync/actions/workflows/tests.yml) [![Coveralls](https://img.shields.io/coverallsCoverage/github/Geoffery10/Stoat-Sync)](https://coveralls.io/github/Geoffery10/Stoat-Sync?branch=main)
 
 ![Stoat Sync Icon](/image/README/Stoat-Sync-Icon-Small.png)
 
