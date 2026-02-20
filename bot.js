@@ -9,6 +9,7 @@ import stoatMessageUpdate from './src/events/stoat/messageUpdate.js';
 import stoatMessageDelete from './src/events/stoat/messageDelete.js';
 
 // Import Discord event handlers
+import discordInteractionCreate from './src/events/discord/interactionCreate.js';
 import discordMessageCreate from './src/events/discord/messageCreate.js';
 import discordMessageUpdate from './src/events/discord/messageUpdate.js';
 import discordMessageDelete from './src/events/discord/messageDelete.js';
@@ -48,16 +49,16 @@ discordClient.on('clientReady', async () => {
     const rest = new REST({ version: '10' }).setToken(config.DISCORD_TOKEN);
     try {
         logger.info('Started refreshing application (/) commands.');
-        
+
         // Sync to specific test guild
         await rest.put(
             Routes.applicationGuildCommands(discordClient.user.id, '254779349352448001'),
-            { body: 
+            { body:
               [
                 syncChannelCommand.data.toJSON(),
                 unsyncChannelCommand.data.toJSON(),
                 isSyncedCommand.data.toJSON()
-              ] 
+              ]
             },
         );
 
@@ -67,48 +68,7 @@ discordClient.on('clientReady', async () => {
     }
 });
 
-discordClient.on('interactionCreate', async (interaction) => {
-    if (!interaction.isChatInputCommand()) return;
-
-    if (interaction.commandName === syncChannelCommand.data.name) {
-        try {
-            await syncChannelCommand.execute(interaction);
-        } catch (error) {
-            logger.error(error);
-            if (interaction.replied || interaction.deferred) {
-                await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
-            } else {
-                await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-            }
-        }
-    }
-    else if (interaction.commandName === unsyncChannelCommand.data.name) {
-      try {
-          await unsyncChannelCommand.execute(interaction);
-      } catch (error) {
-          logger.error(error);
-          if (interaction.replied || interaction.deferred) {
-              await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
-          } else {
-              await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-          }
-      }
-    }
-    else if (interaction.commandName === isSyncedCommand.data.name) {
-      try {
-          await isSyncedCommand.execute(interaction);
-      } catch (error) {
-        logger.error(error);
-        if (interaction.replied || interaction.deferred) {
-            await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
-        } else {
-            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-        }
-      }
-    }
-  }
-);
-
+discordClient.on('interactionCreate', (interaction) => discordInteractionCreate(interaction));
 discordClient.on('messageCreate', (message) => discordMessageCreate(message, config));
 discordClient.on('messageUpdate', (oldMessage, newMessage) => discordMessageUpdate(oldMessage, newMessage, config));
 discordClient.on('messageDelete', (message) => discordMessageDelete(message, config));
