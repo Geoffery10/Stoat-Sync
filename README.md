@@ -13,7 +13,8 @@
 - **Message Deletion**: Deleted messages are removed from both platforms
 - **Attachment Support**: Files and images are transferred between platforms
 - **Channel Mapping**: Configure which channels should be synchronized
-- **User Identification**: Messages show the original sender's name from their platform
+- **User Identification**: Messages show the original sender's name and profile picture from their platform
+- **Slash Commands**: Manage channel synchronization directly from Discord
 
 ## Installation
 
@@ -29,13 +30,6 @@
    STOAT_BOT_TOKEN=your_stoat_bot_token
    STOAT_BOT_ID=your_stoat_bot_id
    STOAT_BASE_URL=https://your-stoat-instance.com
-   ```
-4. Create a `channel_mapping.yaml` file to configure which channels should be synchronized:
-   ```yaml
-   # Discord Channel ID: Stoat Channel ID
-   "discord-channel-id-1": "stoat-channel-id-1"
-   "discord-channel-id-2": "stoat-channel-id-2"
-   ```
 
 ## Usage
 
@@ -43,6 +37,14 @@ Start the synchronization:
 ```bash
 node bot.js
 ```
+
+### Discord Commands
+
+Once the bot is running, you can use these slash commands in Discord:
+
+- `/is-synced` - Checks if the current channel is synced with a Stoat channel
+- `/sync-channel <stoatid>` - Syncs the current Discord channel with a Stoat channel (Admin only)
+- `/unsync-channel` - Removes the sync between the current Discord channel and its Stoat channel (Admin only)
 
 ## Configuration
 
@@ -68,4 +70,3 @@ The system uses a single unified application (`bot.js`) that handles bidirection
 
 - The application must be run with Node.js 18 or higher due to its use of ES modules
 - Both bot accounts need appropriate permissions in their respective platforms
-- The channel mapping file must be properly formatted YAML
