@@ -30,6 +30,7 @@
    STOAT_BOT_TOKEN=your_stoat_bot_token
    STOAT_BOT_ID=your_stoat_bot_id
    STOAT_BASE_URL=https://your-stoat-instance.com
+   ```
 
 ## Usage
 
