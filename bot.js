@@ -16,6 +16,7 @@ import discordMessageDelete from './src/events/discord/messageDelete.js';
 // Import Commands
 import * as syncChannelCommand from './src/commands/syncChannel.js';
 import * as unsyncChannelCommand from './src/commands/unsyncChannel.js';
+import * as isSyncedCommand from './src/commands/isSynced.js';
 
 // Initialize Stoat client
 let stoatClient = new Client({baseURL: config.STOAT_API_URL});
@@ -54,7 +55,8 @@ discordClient.on('clientReady', async () => {
             { body: 
               [
                 syncChannelCommand.data.toJSON(),
-                unsyncChannelCommand.data.toJSON()
+                unsyncChannelCommand.data.toJSON(),
+                isSyncedCommand.data.toJSON()
               ] 
             },
         );
@@ -81,17 +83,29 @@ discordClient.on('interactionCreate', async (interaction) => {
         }
     }
     else if (interaction.commandName === unsyncChannelCommand.data.name) {
-        try {
-            await unsyncChannelCommand.execute(interaction);
-        } catch (error) {
-            logger.error(error);
-            if (interaction.replied || interaction.deferred) {
-                await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
-            } else {
-                await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-            }
+      try {
+          await unsyncChannelCommand.execute(interaction);
+      } catch (error) {
+          logger.error(error);
+          if (interaction.replied || interaction.deferred) {
+              await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+          } else {
+              await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+          }
+      }
+    }
+    else if (interaction.commandName === isSyncedCommand.data.name) {
+      try {
+          await isSyncedCommand.execute(interaction);
+      } catch (error) {
+        logger.error(error);
+        if (interaction.replied || interaction.deferred) {
+            await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+        } else {
+            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
         }
       }
+    }
   }
 );
 
