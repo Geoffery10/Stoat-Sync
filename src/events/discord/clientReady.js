@@ -13,9 +13,9 @@ export default async function clientReady(discordClient) {
     try {
         logger.info('Started refreshing application (/) commands.');
 
-        // Sync to specific test guild
+        // Sync to guilds
         await rest.put(
-            Routes.applicationGuildCommands(discordClient.user.id, '254779349352448001'),
+            Routes.applicationCommands(discordClient.user.id),
             { body:
               [
                 syncChannelCommand.data.toJSON(),
