@@ -16,9 +16,6 @@
     "test:coverage": "jest --coverage"
   },
   "jest": {
-    "setupFilesAfterEnv": [
-      "<rootDir>/jest.setup.js"
-    ],
     "collectCoverage": true,
     "coverageDirectory": "coverage",
     "coverageReporters": [
