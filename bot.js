@@ -9,15 +9,11 @@ import stoatMessageUpdate from './src/events/stoat/messageUpdate.js';
 import stoatMessageDelete from './src/events/stoat/messageDelete.js';
 
 // Import Discord event handlers
+import discordClientReady from './src/events/discord/clientReady.js';
 import discordInteractionCreate from './src/events/discord/interactionCreate.js';
 import discordMessageCreate from './src/events/discord/messageCreate.js';
 import discordMessageUpdate from './src/events/discord/messageUpdate.js';
 import discordMessageDelete from './src/events/discord/messageDelete.js';
-
-// Import Commands
-import * as syncChannelCommand from './src/commands/syncChannel.js';
-import * as unsyncChannelCommand from './src/commands/unsyncChannel.js';
-import * as isSyncedCommand from './src/commands/isSynced.js';
 
 // Initialize Stoat client
 let stoatClient = new Client({baseURL: config.STOAT_API_URL});
@@ -42,32 +38,7 @@ stoatClient.on("messageDelete", (message) => stoatMessageDelete(message, config)
 
 
 // Discord Event Handlers
-discordClient.on('clientReady', async () => {
-    logger.info(`Logged in as ${discordClient.user.tag}`);
-
-    // Register Commands
-    const rest = new REST({ version: '10' }).setToken(config.DISCORD_TOKEN);
-    try {
-        logger.info('Started refreshing application (/) commands.');
-
-        // Sync to specific test guild
-        await rest.put(
-            Routes.applicationGuildCommands(discordClient.user.id, '254779349352448001'),
-            { body:
-              [
-                syncChannelCommand.data.toJSON(),
-                unsyncChannelCommand.data.toJSON(),
-                isSyncedCommand.data.toJSON()
-              ]
-            },
-        );
-
-        logger.info('Successfully reloaded application (/) commands.');
-    } catch (error) {
-        logger.error(error);
-    }
-});
-
+discordClient.on('clientReady', () => discordClientReady(discordClient));
 discordClient.on('interactionCreate', (interaction) => discordInteractionCreate(interaction));
 discordClient.on('messageCreate', (message) => discordMessageCreate(message, config));
 discordClient.on('messageUpdate', (oldMessage, newMessage) => discordMessageUpdate(oldMessage, newMessage, config));
