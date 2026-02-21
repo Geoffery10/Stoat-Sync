@@ -58,6 +58,30 @@ Once the bot is running, you can use these slash commands in Discord:
 | `STOAT_BOT_ID` | Your Stoat bot's user ID |
 | `STOAT_BASE_URL` | Base URL of your Stoat instance |
 
+## Docker Deployment
+
+1. Create a `.env` file with your credentials (see [Installation](#installation))
+2. Create a `docker-compose.yml` file:
+
+```yaml
+version: "3.9"
+
+services:
+  stoat-sync:
+    image: geoffery10/stoat-sync:latest
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/usr/src/bot/data  # Preserves channel mappings
+```
+
+3. Start the container:
+```bash
+docker-compose up -d
+```
+
+**Note**: The `data` volume preserves your channel mappings between container restarts. The `.env` file provides the necessary configuration.
+
 ## Architecture
 
 The system uses a single unified application (`bot.js`) that handles bidirectional synchronization between Discord and Stoat. This simplified architecture:
