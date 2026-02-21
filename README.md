@@ -1,5 +1,6 @@
 # Stoat Sync
-[![Tests](https://img.shields.io/github/actions/workflow/status/Geoffery10/Stoat-Sync/tests.yml?label=tests)](https://github.com/Geoffery10/Stoat-Sync/actions/workflows/tests.yml) [![Coveralls](https://img.shields.io/coverallsCoverage/github/Geoffery10/Stoat-Sync)](https://coveralls.io/github/Geoffery10/Stoat-Sync?branch=main)
+[![Tests](https://img.shields.io/github/actions/workflow/status/Geoffery10/Stoat-Sync/tests.yml?label=tests)](https://github.com/Geoffery10/Stoat-Sync/actions/workflows/tests.yml) [![Coveralls](https://img.shields.io/coverallsCoverage/github/Geoffery10/Stoat-Sync)](https://coveralls.io/github/Geoffery10/Stoat-Sync?branch=main) [![Docker Pulls](https://img.shields.io/docker/pulls/geoffery10/stoat-sync)
+](https://hub.docker.com/repository/docker/geoffery10/stoat-sync/general)
 
 ![Stoat Sync Icon](/image/README/Stoat-Sync-Icon-Small.png)
 
