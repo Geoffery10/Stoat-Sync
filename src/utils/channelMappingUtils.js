@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import yaml from 'js-yaml';
 import path from 'path';
 
-const DEFAULT_CHANNEL_MAPPING_FILE = 'channel_mapping.yaml';
+const DEFAULT_CHANNEL_MAPPING_FILE = 'data/channel_mapping.yaml';
 
 /**
  * Ensures the channel mapping file exists, creates it if missing
@@ -13,6 +13,8 @@ export async function ensureChannelMappingFileExists(filePath = DEFAULT_CHANNEL_
     try {
         await fs.access(filePath);
     } catch {
+        const dir = path.dirname(filePath);
+        await fs.mkdir(dir, { recursive: true });
         await fs.writeFile(filePath, '');
     }
 }

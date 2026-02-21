@@ -13,7 +13,7 @@ import {
 jest.mock('fs/promises');
 jest.mock('js-yaml');
 
-const TEST_FILE = 'test_channel_mapping.yaml';
+const TEST_FILE = 'data/test_channel_mapping.yaml';
 
 describe('channelMappingUtils', () => {
     beforeEach(() => {
@@ -47,7 +47,7 @@ describe('channelMappingUtils', () => {
 
         it('should use default filename if none provided', async () => {
              await ensureChannelMappingFileExists();
-             expect(fs.access).toHaveBeenCalledWith('channel_mapping.yaml');
+             expect(fs.access).toHaveBeenCalledWith('data/channel_mapping.yaml');
         });
     });
 
