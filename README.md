@@ -1,11 +1,12 @@
 # Stoat Sync
 ![Discord](https://img.shields.io/badge/Bot-Discord?style=flat&label=Discord&labelColor=5a69fd&color=grey) ![Stoat](https://img.shields.io/badge/Bot-Stoat?style=flat&label=Stoat&labelColor=8a3fcf&color=grey)
+
 [![Tests](https://img.shields.io/github/actions/workflow/status/Geoffery10/Stoat-Sync/tests.yml?label=tests)](https://github.com/Geoffery10/Stoat-Sync/actions/workflows/tests.yml) [![Coveralls](https://img.shields.io/coverallsCoverage/github/Geoffery10/Stoat-Sync)](https://coveralls.io/github/Geoffery10/Stoat-Sync?branch=main) [![Docker Pulls](https://img.shields.io/docker/pulls/geoffery10/stoat-sync)
 ](https://hub.docker.com/repository/docker/geoffery10/stoat-sync/general)
 
 
 
-![Stoat Sync Icon](/image/README/Stoat-Sync-Icon-Small.png)
+![Stoat Sync Icon](/image/README/Stoat-Sync-Icon-Animated.webp)
 
 **Stoat Sync** is a bidirectional bridge between Discord and Stoat chat platforms, allowing seamless communication between users on both platforms. Messages, edits, and deletions are automatically synchronized in real-time.
 
