@@ -56,7 +56,7 @@ export function convertChannelId(channelId, config) {
         return config.CHANNEL_MAPPING[channelId] || channelId;
     }
     // Check if it's a Stoat channel ID (UUID-like)
-    else if (/^[0-9A-z]{26}/.test(channelId)) {
+    else if (/^[A-Z0-9]{26}$/.test(channelId)) {
         // Convert Stoat → Discord using STOAT_TO_DISCORD_MAPPING
         return config.STOAT_TO_DISCORD_MAPPING[channelId] || channelId;
     }
