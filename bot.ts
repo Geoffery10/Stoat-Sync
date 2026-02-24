@@ -19,7 +19,7 @@ import discordMessageDelete from './src/events/discord/messageDelete.js';
 let stoatClient = new Client({baseURL: config.STOAT_API_URL});
 
 // Initialize Discord client
-export const discordClient = new DiscordClient({
+export const discordClient: DiscordClient = new DiscordClient({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
@@ -27,15 +27,13 @@ export const discordClient = new DiscordClient({
   ]
 });
 
-
 // Stoat Event Handlers
 stoatClient.on("ready", async () => {
-  logger.info(`Logged in as ${stoatClient.user.username}!`);
+  logger.info(`Logged in as ${stoatClient.user?.username}!`);
 });
 stoatClient.on("messageCreate", (message) => stoatMessageCreate(message, config));
 stoatClient.on("messageUpdate", (oldMessage, newMessage) => stoatMessageUpdate(oldMessage, newMessage, config));
 stoatClient.on("messageDelete", (message) => stoatMessageDelete(message, config));
-
 
 // Discord Event Handlers
 discordClient.on('clientReady', () => discordClientReady(discordClient));
@@ -43,7 +41,6 @@ discordClient.on('interactionCreate', (interaction) => discordInteractionCreate(
 discordClient.on('messageCreate', (message) => discordMessageCreate(message, config));
 discordClient.on('messageUpdate', (oldMessage, newMessage) => discordMessageUpdate(oldMessage, newMessage, config));
 discordClient.on('messageDelete', (message) => discordMessageDelete(message, config));
-
 
 // Login to both clients
 await Promise.all([
