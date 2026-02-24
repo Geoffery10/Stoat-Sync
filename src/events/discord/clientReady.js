@@ -6,13 +6,11 @@ import * as unsyncChannelCommand from '../../commands/unsyncChannel.js';
 import * as isSyncedCommand from '../../commands/isSynced.js';
 
 export default async function clientReady(discordClient) {
-    logger.info(`Logged in as ${discordClient.user.tag}`);
+    logger.info(`Logged into Discord as ${discordClient.user.tag}`);
 
     // Register Commands
     const rest = new REST({ version: '10' }).setToken(config.DISCORD_TOKEN);
     try {
-        logger.info('Started refreshing application (/) commands.');
-
         // Sync to guilds
         await rest.put(
             Routes.applicationCommands(discordClient.user.id),
@@ -24,8 +22,6 @@ export default async function clientReady(discordClient) {
               ]
             },
         );
-
-        logger.info('Successfully reloaded application (/) commands.');
     } catch (error) {
         logger.error(error);
     }

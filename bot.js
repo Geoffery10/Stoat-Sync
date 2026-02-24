@@ -15,6 +15,8 @@ import discordMessageCreate from './src/events/discord/messageCreate.js';
 import discordMessageUpdate from './src/events/discord/messageUpdate.js';
 import discordMessageDelete from './src/events/discord/messageDelete.js';
 
+const BOT_VERSION = "1.0.0";
+
 // Initialize Stoat client
 let stoatClient = new Client({baseURL: config.STOAT_API_URL});
 
@@ -30,7 +32,8 @@ export const discordClient = new DiscordClient({
 
 // Stoat Event Handlers
 stoatClient.on("ready", async () => {
-  logger.info(`Logged in as ${stoatClient.user.username}!`);
+  logger.info(`Logged into Stoat as ${stoatClient.user.username}!`);
+  logger.info(`Stoat client ready (v${BOT_VERSION})`);
 });
 stoatClient.on("messageCreate", (message) => stoatMessageCreate(message, config));
 stoatClient.on("messageUpdate", (oldMessage, newMessage) => stoatMessageUpdate(oldMessage, newMessage, config));
@@ -38,7 +41,10 @@ stoatClient.on("messageDelete", (message) => stoatMessageDelete(message, config)
 
 
 // Discord Event Handlers
-discordClient.on('clientReady', () => discordClientReady(discordClient));
+discordClient.on('clientReady', () => {
+  discordClientReady(discordClient);
+  logger.info(`Discord client ready (v${BOT_VERSION})`);
+});
 discordClient.on('interactionCreate', (interaction) => discordInteractionCreate(interaction));
 discordClient.on('messageCreate', (message) => discordMessageCreate(message, config));
 discordClient.on('messageUpdate', (oldMessage, newMessage) => discordMessageUpdate(oldMessage, newMessage, config));
