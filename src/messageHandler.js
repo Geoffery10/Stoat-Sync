@@ -135,7 +135,7 @@ export async function deleteMessageInDiscord(discordChannel, discordMessageId, m
         stoatToDiscordMapping.delete(messageId);
         return true;
     } catch (error) {
-        logger.error(`Failed to delete message in Discord: ${error.message}`);
+        logger.warn(`Failed to delete message in Discord: ${error.message}`);
         return false;
     }
 }

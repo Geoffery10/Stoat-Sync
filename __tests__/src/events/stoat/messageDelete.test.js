@@ -72,7 +72,7 @@ describe('Stoat messageDelete event handler', () => {
             mockConfig.STOAT_TO_DISCORD_MAPPING[mockMessage.channelId]
         );
         expect(messageHandler.deleteMessageInDiscord).not.toHaveBeenCalled();
-        expect(logger.error).toHaveBeenCalledWith(
+        expect(logger.warn).toHaveBeenCalledWith(
             `Could not find Discord channel with ID ${mockConfig.STOAT_TO_DISCORD_MAPPING[mockMessage.channelId]}`
         );
     });
@@ -96,7 +96,7 @@ describe('Stoat messageDelete event handler', () => {
         );
     });
 
-    it('should log error if Discord message deletion fails', async () => {
+    it('should log warning if Discord message deletion fails', async () => {
         shouldMirrorChannel.mockReturnValue(true);
         messageHandler.stoatToDiscordMapping.set(mockMessage.id, 'discord-message-456');
         const mockDiscordChannel = { id: 'discord-channel-1' };
@@ -106,7 +106,7 @@ describe('Stoat messageDelete event handler', () => {
 
         await messageDelete(mockMessage, mockConfig);
 
-        expect(logger.error).toHaveBeenCalledWith(
+        expect(logger.warn).toHaveBeenCalledWith(
             `Failed to delete message in Discord: ${mockError.message}`
         );
     });

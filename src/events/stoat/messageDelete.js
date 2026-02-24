@@ -14,12 +14,12 @@ export default async function(message, config) {
     try {
         const discordChannel = await discordClient.channels.fetch(discordChannelId);
         if (!discordChannel) {
-            logger.error(`Could not find Discord channel with ID ${discordChannelId}`);
+            logger.warn(`Could not find Discord channel with ID ${discordChannelId}`);
             return;
         }
 
         await messageHandler.deleteMessageInDiscord(discordChannel, discordMessageId, message.id);
     } catch (error) {
-        logger.error(`Failed to delete message in Discord: ${error.message}`);
+        logger.warn(`Failed to delete message in Discord: ${error.message}`);
     }
 }
