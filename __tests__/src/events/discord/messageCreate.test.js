@@ -24,6 +24,7 @@ describe('messageCreate event handler', () => {
         // Clear all mocks before each test
         jest.clearAllMocks();
         messageHandler.discordToStoatMapping.clear();
+        messageHandler.stoatToDiscordMapping.clear();
     });
 
     it('should return early if channel should not be mirrored', async () => {
@@ -63,10 +64,10 @@ describe('messageCreate event handler', () => {
             mockConfig
         );
 
-        // Verify the mapping was stored correctly
         const channelMap = messageHandler.discordToStoatMapping.get(mockMessage.channelId);
         expect(channelMap).toBeDefined();
         expect(channelMap.get(mockMessage.id)).toBe('stoat-message-456');
+        expect(messageHandler.stoatToDiscordMapping.get('stoat-message-456')).toBe(mockMessage.id);
     });
 
     it('should not store mapping if sendMessageToStoat returns falsy value', async () => {
@@ -77,6 +78,7 @@ describe('messageCreate event handler', () => {
         await messageCreate(mockMessage, mockConfig);
 
         expect(messageHandler.discordToStoatMapping.get(mockMessage.channelId)).toBeUndefined();
+        expect(messageHandler.stoatToDiscordMapping.size).toBe(0);
     });
 
     it('should initialize channel map if it does not exist', async () => {

@@ -41,6 +41,7 @@ describe('Stoat messageCreate event handler', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         messageHandler.stoatToDiscordMapping.clear();
+        messageHandler.discordToStoatMapping.clear();
         discordClient.channels.fetch.mockResolvedValue(mockDiscordChannel);
     });
 
@@ -119,6 +120,10 @@ describe('Stoat messageCreate event handler', () => {
             mockConfig
         );
         expect(messageHandler.stoatToDiscordMapping.get(mockMessage.id)).toBe(mockSentMessage.id);
+
+        const channelMap = messageHandler.discordToStoatMapping.get(mockDiscordChannel.id);
+        expect(channelMap).toBeDefined();
+        expect(channelMap.get(mockSentMessage.id)).toBe(mockMessage.id);
     });
 
     it('should not store mapping if sendMessageToDiscord returns null', async () => {
@@ -129,5 +134,20 @@ describe('Stoat messageCreate event handler', () => {
         await messageCreate(mockMessage, mockConfig);
 
         expect(messageHandler.stoatToDiscordMapping.get(mockMessage.id)).toBeUndefined();
+
+        expect(messageHandler.discordToStoatMapping.get(mockDiscordChannel.id)).toBeUndefined();
+    });
+
+    it('should initialize channel map if it does not exist', async () => {
+        shouldMirrorChannel.mockReturnValue(true);
+        isBotMessage.mockReturnValue(false);
+        const mockSentMessage = { id: 'discord-message-789' };
+        messageHandler.sendMessageToDiscord.mockResolvedValue(mockSentMessage);
+
+        expect(messageHandler.discordToStoatMapping.has(mockDiscordChannel.id)).toBe(false);
+
+        await messageCreate(mockMessage, mockConfig);
+
+        expect(messageHandler.discordToStoatMapping.has(mockDiscordChannel.id)).toBe(true);
     });
 });

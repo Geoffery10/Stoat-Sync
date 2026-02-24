@@ -6,7 +6,7 @@ jest.mock('../../../../bot.js', () => ({
   }
 }));
 
-import { shouldMirrorChannel } from '../../../../src/utils/channelUtils.js';
+import { shouldMirrorChannel, isBotMessage } from '../../../../src/utils/channelUtils.js';
 import * as messageHandler from '../../../../src/messageHandler.js';
 import { discordClient } from '../../../../bot.js';
 import { logger } from '../../../../src/logger.js';
@@ -29,12 +29,14 @@ describe('messageUpdate event handler', () => {
     const mockOldMessage = {
         channelId: 'stoat-channel-1',
         id: 'stoat-message-123',
+        author: { id: 'user-456' },
         content: 'Original message content'
     };
 
     const mockNewMessage = {
         channelId: 'stoat-channel-1',
         id: 'stoat-message-123',
+        author: { id: 'user-456' },
         content: 'Updated message content'
     };
 
@@ -46,6 +48,7 @@ describe('messageUpdate event handler', () => {
 
     it('should return early if channel should not be mirrored', async () => {
         shouldMirrorChannel.mockReturnValue(false);
+        isBotMessage.mockReturnValue(false);
 
         await messageUpdate(mockOldMessage, mockNewMessage, mockConfig);
 
@@ -54,21 +57,34 @@ describe('messageUpdate event handler', () => {
             mockConfig,
             true
         );
+        expect(isBotMessage).not.toHaveBeenCalled();
+        expect(messageHandler.editMessageInDiscord).not.toHaveBeenCalled();
+    });
+
+    it('should return early if message is from a bot', async () => {
+        shouldMirrorChannel.mockReturnValue(true);
+        isBotMessage.mockReturnValue(true);
+
+        await messageUpdate(mockOldMessage, mockNewMessage, mockConfig);
+
+        expect(isBotMessage).toHaveBeenCalledWith(mockOldMessage, mockConfig, true);
         expect(messageHandler.editMessageInDiscord).not.toHaveBeenCalled();
     });
 
     it('should return early if no Discord message ID mapping exists', async () => {
         shouldMirrorChannel.mockReturnValue(true);
+        isBotMessage.mockReturnValue(false);
 
         await messageUpdate(mockOldMessage, mockNewMessage, mockConfig);
 
+        expect(isBotMessage).toHaveBeenCalledWith(mockOldMessage, mockConfig, true);
         expect(messageHandler.editMessageInDiscord).not.toHaveBeenCalled();
     });
 
     it('should edit message in Discord when mapping exists', async () => {
         shouldMirrorChannel.mockReturnValue(true);
+        isBotMessage.mockReturnValue(false);
 
-        // Set up the mapping
         messageHandler.stoatToDiscordMapping.set(mockNewMessage.id, 'discord-message-456');
 
         await messageUpdate(mockOldMessage, mockNewMessage, mockConfig);
@@ -86,6 +102,7 @@ describe('messageUpdate event handler', () => {
 
     it('should handle error when Discord channel is not found', async () => {
         shouldMirrorChannel.mockReturnValue(true);
+        isBotMessage.mockReturnValue(false);
         messageHandler.stoatToDiscordMapping.set(mockNewMessage.id, 'discord-message-456');
         discordClient.channels.fetch.mockResolvedValue(null);
 

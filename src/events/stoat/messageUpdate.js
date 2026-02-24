@@ -1,10 +1,11 @@
-import { shouldMirrorChannel } from '../../utils/channelUtils.js';
+import { isBotMessage, shouldMirrorChannel } from '../../utils/channelUtils.js';
 import * as messageHandler from '../../messageHandler.js';
 import { discordClient } from '../../../bot.js';
 import { logger } from '../../logger.js';
 
 export default async function(oldMessage, newMessage, config) {
     if (!shouldMirrorChannel(oldMessage.channelId, config, true)) return;
+    if (isBotMessage(oldMessage, config, true)) return;
 
     const discordMessageId = messageHandler.stoatToDiscordMapping.get(newMessage.id);
     if (!discordMessageId) return;

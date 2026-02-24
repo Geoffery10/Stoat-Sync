@@ -20,7 +20,11 @@ async function getDiscordChannel(channelId) {
 async function sendMessageToDiscord(message, discordChannel, config) {
     const sentMessage = await messageHandler.sendMessageToDiscord(message, discordChannel, config);
     if (sentMessage) {
+        if (!messageHandler.discordToStoatMapping.has(discordChannel.id)) {
+            messageHandler.discordToStoatMapping.set(discordChannel.id, new Map());
+        }
         messageHandler.stoatToDiscordMapping.set(message.id, sentMessage.id);
+        messageHandler.discordToStoatMapping.get(discordChannel.id).set(sentMessage.id, message.id);
     }
     return sentMessage;
 }

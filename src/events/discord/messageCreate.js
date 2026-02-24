@@ -13,5 +13,6 @@ export default async function(message, config) {
             messageHandler.discordToStoatMapping.set(message.channelId, new Map());
         }
         messageHandler.discordToStoatMapping.get(message.channelId).set(message.id, stoatMessageId);
+        messageHandler.stoatToDiscordMapping.set(stoatMessageId, message.id);
     }
 }
